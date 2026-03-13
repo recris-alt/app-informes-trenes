@@ -1,37 +1,46 @@
 .create-report {
   background: white;
-  padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .form-group label {
   font-weight: 600;
   color: #333;
-  font-size: 14px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-group label::before {
+  content: 'â—';
+  color: #FF000F;
+  font-size: 8px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 .form-group input:focus,
@@ -39,31 +48,82 @@ form {
 .form-group select:focus {
   outline: none;
   border-color: #FF000F;
-  box-shadow: 0 0 0 3px rgba(255,0,15,0.1);
+  box-shadow: 0 0 0 4px rgba(255,0,15,0.1);
 }
 
 .form-group small {
   color: #666;
   font-size: 12px;
+  margin-top: -5px;
+}
+
+/* Firma tÃ¡ctil */
+.signature-container {
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.signature-container:hover {
+  border-color: #FF000F;
+  background: #fff;
+}
+
+.signature-canvas {
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: crosshair;
+  background: white;
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  touch-action: none;
+}
+
+.signature-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.clear-signature-btn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.clear-signature-btn:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
 }
 
 .photo-preview {
   margin: 15px 0;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 6px;
+  padding: 18px;
+  background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
 }
 
 .photo-preview p {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-weight: 600;
   color: #333;
+  font-size: 14px;
 }
 
 .preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
 }
 
 .preview-item {
@@ -71,8 +131,14 @@ form {
   width: 100%;
   padding-bottom: 100%;
   background: #eee;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.preview-item:hover {
+  transform: scale(1.05);
 }
 
 .preview-item img {
@@ -86,41 +152,44 @@ form {
 
 .remove-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(255,0,0,0.8);
+  top: 6px;
+  right: 6px;
+  background: rgba(244, 67, 54, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .remove-btn:hover {
-  background: rgba(255,0,0,1);
+  background: rgba(211, 47, 47, 1);
+  transform: scale(1.1);
 }
 
 .message {
-  padding: 15px;
-  border-radius: 6px;
+  padding: 16px;
+  border-radius: 8px;
   text-align: center;
   font-weight: 600;
-  animation: slideIn 0.3s ease-in;
-  background: #e8f5e9;
+  animation: slideIn 0.4s ease-in;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   color: #2e7d32;
-  border: 1px solid #4caf50;
+  border: 2px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-15px);
   }
   to {
     opacity: 1;
@@ -129,32 +198,41 @@ form {
 }
 
 .submit-btn {
-  padding: 14px 20px;
-  background: #FF000F;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #FF000F 0%, #DC143C 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 0, 15, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #cc000c;
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 15, 0.4);
 }
 
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 600px) {
   .create-report {
-    padding: 15px;
+    padding: 20px;
   }
 
   .preview-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .signature-canvas {
+    max-width: 100%;
   }
 }

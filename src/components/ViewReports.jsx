@@ -49,7 +49,7 @@ export default function ViewReports() {
   return (
     <div className="view-reports">
       {reports.length === 0 ? (
-        <p className="no-reports">No hay informes guardados aún</p>
+        <p className="no-reports">📋 No hay informes guardados aún. ¡Crea el primero!</p>
       ) : (
         <>
           <div className="reports-list">
@@ -63,7 +63,8 @@ export default function ViewReports() {
                   <h3>{report.rework_name}</h3>
                   <span className="date">{new Date(report.date).toLocaleDateString('es-ES')}</span>
                 </div>
-                <p className="tech-name">{report.technician_name}</p>
+                <p className="tech-name">👤 {report.technician_name}</p>
+                <p className="project-name">📁 {report.project}</p>
               </div>
             ))}
           </div>
@@ -77,39 +78,53 @@ export default function ViewReports() {
 
               <div className="detail-body">
                 <div className="detail-row">
-                  <span className="label">Técnico:</span>
+                  <span className="label">👤 Técnico:</span>
                   <span className="value">{selectedReport.technician_name}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Fecha:</span>
-                  <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES')}</span>
+                  <span className="label">📅 Fecha:</span>
+                  <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Proyecto:</span>
+                  <span className="label">📁 Proyecto:</span>
                   <span className="value">{selectedReport.project}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Unidad:</span>
+                  <span className="label">🔧 Unidad:</span>
                   <span className="value">{selectedReport.unit}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Nº Convertidor:</span>
+                  <span className="label">⚡ Nº Convertidor:</span>
                   <span className="value">{selectedReport.converter_number}</span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Puntos ejecutados:</span>
+                  <span className="label">📝 Puntos ejecutados:</span>
                   <span className="value">{selectedReport.rework_points}</span>
                 </div>
                 {selectedReport.comments && (
                   <div className="detail-row">
-                    <span className="label">Comentarios:</span>
+                    <span className="label">💬 Observaciones:</span>
                     <span className="value">{selectedReport.comments}</span>
+                  </div>
+                )}
+
+                {selectedReport.signature_url && (
+                  <div className="signature-section">
+                    <h4>✍️ Firma del Técnico</h4>
+                    <div className="signature-display">
+                      <img src={selectedReport.signature_url} alt="Firma" />
+                    </div>
                   </div>
                 )}
 
                 {selectedReport.photo_urls && selectedReport.photo_urls.length > 0 && (
                   <div className="photos-section">
-                    <h4>Fotos</h4>
+                    <h4>📸 Fotografías del Trabajo ({selectedReport.photo_urls.length})</h4>
                     <div className="photos-grid">
                       {selectedReport.photo_urls.map((url, index) => (
                         <img key={index} src={url} alt={`Foto ${index + 1}`} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../services/supabaseClient'
 import '../styles/CreateReport.css'
 
@@ -12,12 +12,17 @@ export default function CreateReport() {
     rework_name: '',
     rework_points: '',
     comments: '',
-    photos: []
+    photos: [],
+    signature: null
   })
 
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [photoPreview, setPhotoPreview] = useState([])
+  const [isDrawing, setIsDrawing] = useState(false)
+  
+  const canvasRef = useRef(null)
+  const contextRef = useRef(null)
 
   useEffect(() => {
     const savedDraft = localStorage.getItem('reportDraft')
@@ -29,6 +34,55 @@ export default function CreateReport() {
   useEffect(() => {
     localStorage.setItem('reportDraft', JSON.stringify(formData))
   }, [formData])
+
+  // Inicializar canvas de firma
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    canvas.width = canvas.offsetWidth * 2
+    canvas.height = 200 * 2
+    canvas.style.width = `${canvas.offsetWidth}px`
+    canvas.style.height = '200px'
+
+    const context = canvas.getContext('2d')
+    context.scale(2, 2)
+    context.lineCap = 'round'
+    context.strokeStyle = '#000'
+    context.lineWidth = 2
+    contextRef.current = context
+  }, [])
+
+  const startDrawing = ({ nativeEvent }) => {
+    const { offsetX, offsetY } = nativeEvent
+    contextRef.current.beginPath()
+    contextRef.current.moveTo(offsetX, offsetY)
+    setIsDrawing(true)
+  }
+
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing) return
+    const { offsetX, offsetY } = nativeEvent
+    contextRef.current.lineTo(offsetX, offsetY)
+    contextRef.current.stroke()
+  }
+
+  const stopDrawing = () => {
+    contextRef.current.closePath()
+    setIsDrawing(false)
+    
+    // Guardar firma como imagen
+    const canvas = canvasRef.current
+    const signatureData = canvas.toDataURL('image/png')
+    setFormData(prev => ({ ...prev, signature: signatureData }))
+  }
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current
+    const context = contextRef.current
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    setFormData(prev => ({ ...prev, signature: null }))
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -69,6 +123,8 @@ export default function CreateReport() {
 
     try {
       let photoUrls = []
+      
+      // Subir fotos
       for (let i = 0; i < formData.photos.length; i++) {
         const file = formData.photos[i]
         const fileName = `${Date.now()}_${i}_${file.name}`
@@ -86,6 +142,25 @@ export default function CreateReport() {
         photoUrls.push(publicData.publicUrl)
       }
 
+      // Subir firma si existe
+      let signatureUrl = null
+      if (formData.signature) {
+        const signatureBlob = await fetch(formData.signature).then(r => r.blob())
+        const signatureFileName = `signature_${Date.now()}.png`
+        
+        const { error: signatureError } = await supabase.storage
+          .from('report-photos')
+          .upload(signatureFileName, signatureBlob)
+
+        if (signatureError) throw signatureError
+
+        const { data: signaturePublicData } = supabase.storage
+          .from('report-photos')
+          .getPublicUrl(signatureFileName)
+        
+        signatureUrl = signaturePublicData.publicUrl
+      }
+
       const { error } = await supabase
         .from('reports')
         .insert([{
@@ -98,6 +173,7 @@ export default function CreateReport() {
           rework_points: formData.rework_points,
           comments: formData.comments,
           photo_urls: photoUrls,
+          signature_url: signatureUrl,
           created_at: new Date().toISOString()
         }])
 
@@ -114,9 +190,11 @@ export default function CreateReport() {
         rework_name: '',
         rework_points: '',
         comments: '',
-        photos: []
+        photos: [],
+        signature: null
       })
       setPhotoPreview([])
+      clearSignature()
       localStorage.removeItem('reportDraft')
 
       setTimeout(() => setMessage(''), 3000)
@@ -138,12 +216,12 @@ export default function CreateReport() {
             value={formData.technician_name}
             onChange={handleInputChange}
             required
-            placeholder="Tu nombre"
+            placeholder="Introduce tu nombre completo"
           />
         </div>
 
         <div className="form-group">
-          <label>Fecha *</label>
+          <label>Fecha del Trabajo *</label>
           <input
             type="date"
             name="date"
@@ -185,7 +263,7 @@ export default function CreateReport() {
             value={formData.converter_number}
             onChange={handleInputChange}
             required
-            placeholder="123456"
+            placeholder="Número del convertidor"
           />
         </div>
 
@@ -197,7 +275,7 @@ export default function CreateReport() {
             value={formData.rework_name}
             onChange={handleInputChange}
             required
-            placeholder="Descripción del rework"
+            placeholder="Descripción breve del rework"
           />
         </div>
 
@@ -208,13 +286,13 @@ export default function CreateReport() {
             value={formData.rework_points}
             onChange={handleInputChange}
             required
-            placeholder="Detalla los puntos completados..."
-            rows="4"
+            placeholder="Detalla los puntos completados del rework..."
+            rows="5"
           />
         </div>
 
         <div className="form-group">
-          <label>Fotos</label>
+          <label>Fotografías del Trabajo</label>
           <input
             type="file"
             multiple
@@ -222,12 +300,12 @@ export default function CreateReport() {
             onChange={handlePhotoCapture}
             capture="environment"
           />
-          <small>Puedes subir varias fotos</small>
+          <small>Puedes subir varias fotos del trabajo realizado</small>
         </div>
 
         {photoPreview.length > 0 && (
           <div className="photo-preview">
-            <p>Fotos cargadas: {photoPreview.length}</p>
+            <p>📸 Fotos cargadas: {photoPreview.length}</p>
             <div className="preview-grid">
               {photoPreview.map((photo, index) => (
                 <div key={index} className="preview-item">
@@ -246,12 +324,59 @@ export default function CreateReport() {
         )}
 
         <div className="form-group">
-          <label>Comentarios</label>
+          <label>Firma del Técnico *</label>
+          <div className="signature-container">
+            <canvas
+              ref={canvasRef}
+              className="signature-canvas"
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={(e) => {
+                e.preventDefault()
+                const touch = e.touches[0]
+                const rect = e.target.getBoundingClientRect()
+                startDrawing({
+                  nativeEvent: {
+                    offsetX: touch.clientX - rect.left,
+                    offsetY: touch.clientY - rect.top
+                  }
+                })
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault()
+                const touch = e.touches[0]
+                const rect = e.target.getBoundingClientRect()
+                draw({
+                  nativeEvent: {
+                    offsetX: touch.clientX - rect.left,
+                    offsetY: touch.clientY - rect.top
+                  }
+                })
+              }}
+              onTouchEnd={stopDrawing}
+            />
+            <div className="signature-buttons">
+              <button 
+                type="button" 
+                onClick={clearSignature}
+                className="clear-signature-btn"
+              >
+                🗑️ Limpiar Firma
+              </button>
+            </div>
+          </div>
+          <small>Dibuja tu firma con el ratón o con el dedo (táctil)</small>
+        </div>
+
+        <div className="form-group">
+          <label>Observaciones Adicionales</label>
           <textarea
             name="comments"
             value={formData.comments}
             onChange={handleInputChange}
-            placeholder="Observaciones adicionales..."
+            placeholder="Comentarios, notas o detalles adicionales..."
             rows="3"
           />
         </div>
@@ -259,7 +384,7 @@ export default function CreateReport() {
         {message && <div className="message">{message}</div>}
 
         <button type="submit" disabled={loading} className="submit-btn">
-          {loading ? '⏳ Guardando...' : '💾 Guardar Informe'}
+          {loading ? '⏳ Guardando Informe...' : '💾 Guardar Informe Completo'}
         </button>
       </form>
     </div>

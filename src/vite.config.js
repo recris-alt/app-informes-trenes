@@ -5,12 +5,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true,
-    middlewareMode: false
-  },
-  root: '.',
-  build: {
-    outDir: 'dist'
+    open: true
   }
 })
-

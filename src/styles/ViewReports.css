@@ -126,6 +126,59 @@
   flex: 1;
 }
 
+.export-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.export-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.pdf-btn:hover:not(:disabled) {
+  border-color: #FF000F;
+  color: #FF000F;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.word-btn:hover:not(:disabled) {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.print-btn:hover:not(:disabled) {
+  border-color: #059669;
+  color: #059669;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .detail-row {
   display: grid;
   grid-template-columns: 180px 1fr;
@@ -267,6 +320,15 @@
   .signature-display img {
     max-width: 100%;
   }
+
+  .export-buttons {
+    flex-direction: column;
+  }
+
+  .export-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 600px) {
@@ -282,5 +344,14 @@
   
   .photos-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .export-buttons {
+    flex-direction: column;
+  }
+
+  .export-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

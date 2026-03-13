@@ -26,12 +26,6 @@ form {
   gap: 6px;
 }
 
-.form-group label::before {
-  content: 'â—';
-  color: #FF000F;
-  font-size: 8px;
-}
-
 .form-group input,
 .form-group textarea,
 .form-group select {

@@ -47,7 +47,7 @@ export default function CreateReport() {
 
     canvas.width = canvas.offsetWidth * 2
     canvas.height = 200 * 2
-    canvas.style.width = \`\${canvas.offsetWidth}px\`
+    canvas.style.width = canvas.offsetWidth + 'px'
     canvas.style.height = '200px'
 
     const context = canvas.getContext('2d')
@@ -130,7 +130,7 @@ export default function CreateReport() {
       
       for (let i = 0; i < formData.photos.length; i++) {
         const file = formData.photos[i]
-        const fileName = \`\${Date.now()}_\${i}_\${file.name}\`
+        const fileName = Date.now() + '_' + i + '_' + file.name
         
         const { data, error } = await supabase.storage
           .from('report-photos')
@@ -148,7 +148,7 @@ export default function CreateReport() {
       let signatureUrl = null
       if (formData.signature) {
         const signatureBlob = await fetch(formData.signature).then(r => r.blob())
-        const signatureFileName = \`signature_\${Date.now()}.png\`
+        const signatureFileName = 'signature_' + Date.now() + '.png'
         
         const { error: signatureError } = await supabase.storage
           .from('report-photos')
@@ -400,7 +400,7 @@ export default function CreateReport() {
               <div className="preview-grid">
                 {photoPreview.map((photo, index) => (
                   <div key={index} className="preview-item">
-                    <img src={photo} alt={\`Preview \${index}\`} />
+                    <img src={photo} alt={'Preview ' + index} />
                     <button 
                       type="button" 
                       onClick={() => removePhoto(index)}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseClient'
 import { jsPDF } from 'jspdf'
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, AlignmentType, WidthType, BorderStyle } from 'docx'
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, AlignmentType } from 'docx'
 import '../styles/ViewReports.css'
 
 export default function ViewReports() {
@@ -62,7 +62,6 @@ export default function ViewReports() {
       const pageHeight = pdf.internal.pageSize.getHeight()
       let yPosition = 15
 
-      // Header con logo
       pdf.setFontSize(14)
       pdf.setTextColor(255, 0, 15)
       pdf.text('INFORME DE REWORK - ABB', pageWidth / 2, yPosition, { align: 'center' })
@@ -73,22 +72,19 @@ export default function ViewReports() {
       pdf.text('Field Service Report', pageWidth / 2, yPosition, { align: 'center' })
       yPosition += 8
 
-      // Línea divisoria
       pdf.setDrawColor(255, 0, 15)
       pdf.setLineWidth(0.5)
       pdf.line(15, yPosition, pageWidth - 15, yPosition)
       yPosition += 8
 
-      // Número de ticket si existe
       if (selectedReport.ticket_number) {
         pdf.setFontSize(10)
         pdf.setTextColor(0, 0, 0)
         pdf.setFont(undefined, 'bold')
-        pdf.text(\`Ticket: \${selectedReport.ticket_number}\`, 15, yPosition)
+        pdf.text('Ticket: ' + selectedReport.ticket_number, 15, yPosition)
         yPosition += 7
       }
 
-      // Tabla principal con datos
       const tableData = [
         ['INFORMACIÓN GENERAL', ''],
         ['Técnico', selectedReport.technician_name],
@@ -113,7 +109,7 @@ export default function ViewReports() {
       pdf.setTextColor(0, 0, 0)
 
       let currentY = yPosition
-      tableData.forEach((row, index) => {
+      tableData.forEach((row) => {
         if (row[0] === '') {
           currentY += 2
           return
@@ -143,7 +139,6 @@ export default function ViewReports() {
 
       currentY += 5
 
-      // Firma
       if (selectedReport.signature_url) {
         if (currentY > pageHeight - 60) {
           pdf.addPage()
@@ -169,7 +164,6 @@ export default function ViewReports() {
         }
       }
 
-      // Fotografías
       if (selectedReport.photo_urls && selectedReport.photo_urls.length > 0) {
         if (currentY > pageHeight - 50) {
           pdf.addPage()
@@ -186,7 +180,7 @@ export default function ViewReports() {
         const photoWidth = 40
         const photoHeight = 40
 
-        selectedReport.photo_urls.forEach((photoUrl, index) => {
+        selectedReport.photo_urls.forEach((photoUrl) => {
           if (photosPerPage > 0 && photosPerPage % (photosPerRow * 3) === 0) {
             pdf.addPage()
             currentY = 15
@@ -199,14 +193,15 @@ export default function ViewReports() {
           const yPos = currentY + row * (photoHeight + 10)
 
           try {
-            const response = fetch(photoUrl)
-            response.then(r => r.blob()).then(blob => {
-              const reader = new FileReader()
-              reader.onload = (e) => {
-                pdf.addImage(e.target.result, 'JPEG', xPos, yPos, photoWidth, photoHeight)
-              }
-              reader.readAsDataURL(blob)
-            })
+            fetch(photoUrl)
+              .then(r => r.blob())
+              .then(blob => {
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                  pdf.addImage(e.target.result, 'JPEG', xPos, yPos, photoWidth, photoHeight)
+                }
+                reader.readAsDataURL(blob)
+              })
           } catch (err) {
             console.log('No se pudo cargar la foto')
           }
@@ -215,16 +210,15 @@ export default function ViewReports() {
         })
       }
 
-      // Pie de página
       const pageCount = pdf.internal.pages.length - 1
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i)
         pdf.setFontSize(8)
         pdf.setTextColor(150, 150, 150)
-        pdf.text(\`Página \${i} de \${pageCount}\`, pageWidth / 2, pageHeight - 8, { align: 'center' })
+        pdf.text('Página ' + i + ' de ' + pageCount, pageWidth / 2, pageHeight - 8, { align: 'center' })
       }
 
-      const fileName = \`Informe_\${selectedReport.rework_name}_\${new Date().getTime()}.pdf\`
+      const fileName = 'Informe_' + selectedReport.rework_name + '_' + new Date().getTime() + '.pdf'
       pdf.save(fileName)
       setExporting(false)
     } catch (error) {
@@ -251,12 +245,6 @@ export default function ViewReports() {
             new TableCell({ children: [new Paragraph(new Date(selectedReport.date).toLocaleDateString('es-ES'))], width: { size: 70, type: 'pct' } }),
           ],
         }),
-        ...(selectedReport.ticket_number ? [new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Ticket', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.ticket_number)], width: { size: 70, type: 'pct' } }),
-          ],
-        })] : []),
         new TableRow({
           cells: [
             new TableCell({ children: [new Paragraph({ text: 'Cliente', bold: true })], width: { size: 30, type: 'pct' } }),
@@ -287,12 +275,6 @@ export default function ViewReports() {
             new TableCell({ children: [new Paragraph(selectedReport.converter_number.toString())], width: { size: 70, type: 'pct' } }),
           ],
         }),
-        ...(selectedReport.material_number ? [new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Material Nr', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.material_number)], width: { size: 70, type: 'pct' } }),
-          ],
-        })] : []),
       ]
 
       const doc = new Document({
@@ -347,7 +329,7 @@ export default function ViewReports() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = \`Informe_\${selectedReport.rework_name}_\${new Date().getTime()}.docx\`
+      link.download = 'Informe_' + selectedReport.rework_name + '_' + new Date().getTime() + '.docx'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -364,118 +346,52 @@ export default function ViewReports() {
     if (!selectedReport) return
 
     const printWindow = window.open('', '', 'height=800,width=1000')
-    const html = \`
-      <html>
-        <head>
-          <title>Informe de Rework</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-            h1 { color: #FF000F; text-align: center; margin-bottom: 5px; }
-            .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-            .row { margin: 15px 0; display: grid; grid-template-columns: 200px 1fr; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-            .label { font-weight: bold; color: #333; }
-            .value { color: #666; }
-            .section { margin-top: 30px; margin-bottom: 25px; }
-            .section-title { font-weight: bold; color: #FF000F; margin-bottom: 10px; background: #f5f5f5; padding: 10px; }
-            .signature { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }
-            img { max-width: 400px; margin: 10px 0; }
-            .photos { margin-top: 20px; }
-            .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .photo-grid img { max-width: 100%; height: auto; border: 1px solid #ddd; }
-          </style>
-        </head>
-        <body>
-          <h1>INFORME DE REWORK - ABB</h1>
-          <div class="subtitle">Field Service Report</div>
-          
-          <div class="section">
-            <div class="section-title">INFORMACIÓN GENERAL</div>
-            <div class="row">
-              <div class="label">Técnico:</div>
-              <div class="value">\${selectedReport.technician_name}</div>
-            </div>
-            <div class="row">
-              <div class="label">Fecha:</div>
-              <div class="value">\${new Date(selectedReport.date).toLocaleDateString('es-ES')}</div>
-            </div>
-            \${selectedReport.ticket_number ? \`
-            <div class="row">
-              <div class="label">Ticket:</div>
-              <div class="value">\${selectedReport.ticket_number}</div>
-            </div>
-            \` : ''}
-            <div class="row">
-              <div class="label">Cliente:</div>
-              <div class="value">\${selectedReport.customer}</div>
-            </div>
-            <div class="row">
-              <div class="label">Depósito:</div>
-              <div class="value">\${selectedReport.depot}</div>
-            </div>
-            <div class="row">
-              <div class="label">Proyecto:</div>
-              <div class="value">\${selectedReport.project}</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">EQUIPO</div>
-            <div class="row">
-              <div class="label">Unidad:</div>
-              <div class="value">\${selectedReport.unit}</div>
-            </div>
-            <div class="row">
-              <div class="label">Nº Convertidor:</div>
-              <div class="value">\${selectedReport.converter_number}</div>
-            </div>
-            \${selectedReport.material_number ? \`
-            <div class="row">
-              <div class="label">Material Nr:</div>
-              <div class="value">\${selectedReport.material_number}</div>
-            </div>
-            \` : ''}
-          </div>
-
-          <div class="section">
-            <div class="section-title">DESCRIPCIÓN DEL TRABAJO</div>
-            <div class="row">
-              <div class="label">Defecto Detectado:</div>
-              <div class="value">\${selectedReport.detected_defect.replace(/\n/g, '<br>')}</div>
-            </div>
-            <div class="row">
-              <div class="label">Rework Ejecutado:</div>
-              <div class="value">\${selectedReport.rework_name}</div>
-            </div>
-            <div class="row">
-              <div class="label">Puntos Ejecutados:</div>
-              <div class="value">\${selectedReport.rework_points.replace(/\n/g, '<br>')}</div>
-            </div>
-            \${selectedReport.comments ? \`
-            <div class="row">
-              <div class="label">Observaciones:</div>
-              <div class="value">\${selectedReport.comments.replace(/\n/g, '<br>')}</div>
-            </div>
-            \` : ''}
-          </div>
-
-          \${selectedReport.signature_url ? \`
-          <div class="signature">
-            <div class="section-title">FIRMA DEL TÉCNICO</div>
-            <img src="\${selectedReport.signature_url}" style="max-width: 400px;" />
-          </div>
-          \` : ''}
-
-          \${selectedReport.photo_urls && selectedReport.photo_urls.length > 0 ? \`
-          <div class="photos">
-            <div class="section-title">FOTOGRAFÍAS DEL TRABAJO</div>
-            <div class="photo-grid">
-              \${selectedReport.photo_urls.map(url => \`<img src="\${url}" />\`).join('')}
-            </div>
-          </div>
-          \` : ''}
-        </body>
-      </html>
-    \`
+    const html = '<html><head><title>Informe de Rework</title><style>' +
+      'body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }' +
+      'h1 { color: #FF000F; text-align: center; margin-bottom: 5px; }' +
+      '.subtitle { text-align: center; color: #666; margin-bottom: 30px; }' +
+      '.row { margin: 15px 0; display: grid; grid-template-columns: 200px 1fr; border-bottom: 1px solid #eee; padding-bottom: 10px; }' +
+      '.label { font-weight: bold; color: #333; }' +
+      '.value { color: #666; }' +
+      '.section { margin-top: 30px; margin-bottom: 25px; }' +
+      '.section-title { font-weight: bold; color: #FF000F; margin-bottom: 10px; background: #f5f5f5; padding: 10px; }' +
+      '.signature { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }' +
+      'img { max-width: 400px; margin: 10px 0; }' +
+      '.photos { margin-top: 20px; }' +
+      '.photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }' +
+      '.photo-grid img { max-width: 100%; height: auto; border: 1px solid #ddd; }' +
+      '</style></head><body>' +
+      '<h1>INFORME DE REWORK - ABB</h1>' +
+      '<div class="subtitle">Field Service Report</div>' +
+      '<div class="section">' +
+      '<div class="section-title">INFORMACIÓN GENERAL</div>' +
+      '<div class="row"><div class="label">Técnico:</div><div class="value">' + selectedReport.technician_name + '</div></div>' +
+      '<div class="row"><div class="label">Fecha:</div><div class="value">' + new Date(selectedReport.date).toLocaleDateString('es-ES') + '</div></div>' +
+      (selectedReport.ticket_number ? '<div class="row"><div class="label">Ticket:</div><div class="value">' + selectedReport.ticket_number + '</div></div>' : '') +
+      '<div class="row"><div class="label">Cliente:</div><div class="value">' + selectedReport.customer + '</div></div>' +
+      '<div class="row"><div class="label">Depósito:</div><div class="value">' + selectedReport.depot + '</div></div>' +
+      '<div class="row"><div class="label">Proyecto:</div><div class="value">' + selectedReport.project + '</div></div>' +
+      '</div>' +
+      '<div class="section">' +
+      '<div class="section-title">EQUIPO</div>' +
+      '<div class="row"><div class="label">Unidad:</div><div class="value">' + selectedReport.unit + '</div></div>' +
+      '<div class="row"><div class="label">Nº Convertidor:</div><div class="value">' + selectedReport.converter_number + '</div></div>' +
+      (selectedReport.material_number ? '<div class="row"><div class="label">Material Nr:</div><div class="value">' + selectedReport.material_number + '</div></div>' : '') +
+      '</div>' +
+      '<div class="section">' +
+      '<div class="section-title">DESCRIPCIÓN DEL TRABAJO</div>' +
+      '<div class="row"><div class="label">Defecto Detectado:</div><div class="value">' + selectedReport.detected_defect.replace(/
+/g, '<br>') + '</div></div>' +
+      '<div class="row"><div class="label">Rework Ejecutado:</div><div class="value">' + selectedReport.rework_name + '</div></div>' +
+      '<div class="row"><div class="label">Puntos Ejecutados:</div><div class="value">' + selectedReport.rework_points.replace(/
+/g, '<br>') + '</div></div>' +
+      (selectedReport.comments ? '<div class="row"><div class="label">Observaciones:</div><div class="value">' + selectedReport.comments.replace(/
+/g, '<br>') + '</div></div>' : '') +
+      '</div>' +
+      (selectedReport.signature_url ? '<div class="signature"><div class="section-title">FIRMA DEL TÉCNICO</div><img src="' + selectedReport.signature_url + '" style="max-width: 400px;" /></div>' : '') +
+      (selectedReport.photo_urls && selectedReport.photo_urls.length > 0 ? '<div class="photos"><div class="section-title">FOTOGRAFÍAS DEL TRABAJO</div><div class="photo-grid">' + selectedReport.photo_urls.map(url => '<img src="' + url + '" />').join('') + '</div></div>' : '') +
+      '</body></html>'
+    
     printWindow.document.write(html)
     printWindow.document.close()
     setTimeout(() => printWindow.print(), 250)
@@ -493,7 +409,7 @@ export default function ViewReports() {
             {reports.map(report => (
               <div 
                 key={report.id} 
-                className={\`report-item \${selectedReport?.id === report.id ? 'active' : ''}\`}
+                className={'report-item ' + (selectedReport?.id === report.id ? 'active' : '')}
                 onClick={() => setSelectedReport(report)}
               >
                 <div className="report-header">
@@ -532,7 +448,7 @@ export default function ViewReports() {
                 </div>
                 <div className="detail-row">
                   <span className="label">📅 Fecha:</span>
-                  <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES')}</span>
                 </div>
                 {selectedReport.ticket_number && (
                   <div className="detail-row">
@@ -599,7 +515,7 @@ export default function ViewReports() {
                     <h4>📸 Fotografías del Trabajo ({selectedReport.photo_urls.length})</h4>
                     <div className="photos-grid">
                       {selectedReport.photo_urls.map((url, index) => (
-                        <img key={index} src={url} alt={\`Foto \${index + 1}\`} />
+                        <img key={index} src={url} alt={'Foto ' + (index + 1)} />
                       ))}
                     </div>
                   </div>

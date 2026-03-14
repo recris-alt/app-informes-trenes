@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseClient'
 import { jsPDF } from 'jspdf'
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, AlignmentType } from 'docx'
 import '../styles/ViewReports.css'
 
 export default function ViewReports() {
@@ -81,63 +80,67 @@ export default function ViewReports() {
         pdf.setFontSize(10)
         pdf.setTextColor(0, 0, 0)
         pdf.setFont(undefined, 'bold')
-        pdf.text('Ticket: ' + selectedReport.ticket_number, 15, yPosition)
+        const ticketText = 'Ticket: ' + selectedReport.ticket_number
+        pdf.text(ticketText, 15, yPosition)
         yPosition += 7
       }
-
-      const tableData = [
-        ['INFORMACIÓN GENERAL', ''],
-        ['Técnico', selectedReport.technician_name],
-        ['Fecha', new Date(selectedReport.date).toLocaleDateString('es-ES')],
-        ['Cliente', selectedReport.customer],
-        ['Depósito', selectedReport.depot],
-        ['Proyecto', selectedReport.project],
-        ['', ''],
-        ['EQUIPO', ''],
-        ['Unidad', selectedReport.unit],
-        ['Nº Convertidor', selectedReport.converter_number],
-        ...(selectedReport.material_number ? [['Material Nr', selectedReport.material_number]] : []),
-        ['', ''],
-        ['DESCRIPCIÓN DEL TRABAJO', ''],
-        ['Defecto Detectado', selectedReport.detected_defect],
-        ['Rework Ejecutado', selectedReport.rework_name],
-        ['Puntos Ejecutados', selectedReport.rework_points],
-        ...(selectedReport.comments ? [['Observaciones', selectedReport.comments]] : []),
-      ]
 
       pdf.setFontSize(9)
       pdf.setTextColor(0, 0, 0)
 
+      const sections = [
+        { title: 'INFORMACIÓN GENERAL', items: [
+          ['Técnico', selectedReport.technician_name],
+          ['Fecha', new Date(selectedReport.date).toLocaleDateString('es-ES')],
+          ['Cliente', selectedReport.customer],
+          ['Depósito', selectedReport.depot],
+          ['Proyecto', selectedReport.project]
+        ]},
+        { title: 'EQUIPO', items: [
+          ['Unidad', selectedReport.unit],
+          ['Nº Convertidor', selectedReport.converter_number],
+          ...(selectedReport.material_number ? [['Material Nr', selectedReport.material_number]] : [])
+        ]},
+        { title: 'DESCRIPCIÓN DEL TRABAJO', items: [
+          ['Defecto Detectado', selectedReport.detected_defect],
+          ['Rework Ejecutado', selectedReport.rework_name],
+          ['Puntos Ejecutados', selectedReport.rework_points],
+          ...(selectedReport.comments ? [['Observaciones', selectedReport.comments]] : [])
+        ]}
+      ]
+
       let currentY = yPosition
-      tableData.forEach((row) => {
-        if (row[0] === '') {
-          currentY += 2
-          return
-        }
 
-        if (['INFORMACIÓN GENERAL', 'EQUIPO', 'DESCRIPCIÓN DEL TRABAJO'].includes(row[0])) {
-          pdf.setFont(undefined, 'bold')
-          pdf.setFillColor(240, 240, 240)
-          pdf.rect(15, currentY - 4, pageWidth - 30, 5, 'F')
-          pdf.text(row[0], 17, currentY)
-          currentY += 6
-        } else {
-          pdf.setFont(undefined, 'bold')
-          pdf.text(row[0] + ':', 17, currentY)
-          pdf.setFont(undefined, 'normal')
-          
-          const splitText = pdf.splitTextToSize(row[1], 100)
-          pdf.text(splitText, 80, currentY)
-          currentY += splitText.length * 5 + 2
-        }
-
+      sections.forEach((section) => {
         if (currentY > pageHeight - 40) {
           pdf.addPage()
           currentY = 15
         }
-      })
 
-      currentY += 5
+        pdf.setFont(undefined, 'bold')
+        pdf.setFillColor(240, 240, 240)
+        pdf.rect(15, currentY - 4, pageWidth - 30, 5, 'F')
+        pdf.text(section.title, 17, currentY)
+        currentY += 6
+
+        section.items.forEach((item) => {
+          if (currentY > pageHeight - 40) {
+            pdf.addPage()
+            currentY = 15
+          }
+
+          pdf.setFont(undefined, 'bold')
+          const labelText = item[0] + ':'
+          pdf.text(labelText, 17, currentY)
+          pdf.setFont(undefined, 'normal')
+          
+          const splitText = pdf.splitTextToSize(item[1], 100)
+          pdf.text(splitText, 80, currentY)
+          currentY += splitText.length * 5 + 2
+        })
+
+        currentY += 3
+      })
 
       if (selectedReport.signature_url) {
         if (currentY > pageHeight - 60) {
@@ -158,56 +161,9 @@ export default function ViewReports() {
             pdf.addImage(e.target.result, 'PNG', 15, currentY, 60, 25)
           }
           reader.readAsDataURL(blob)
-          currentY += 30
         } catch (err) {
-          console.log('No se pudo cargar la firma')
+          console.log('No se pudo cargar firma')
         }
-      }
-
-      if (selectedReport.photo_urls && selectedReport.photo_urls.length > 0) {
-        if (currentY > pageHeight - 50) {
-          pdf.addPage()
-          currentY = 15
-        }
-
-        pdf.setFont(undefined, 'bold')
-        pdf.setFontSize(10)
-        pdf.text('Fotografías del Trabajo', 15, currentY)
-        currentY += 10
-
-        let photosPerPage = 0
-        const photosPerRow = 2
-        const photoWidth = 40
-        const photoHeight = 40
-
-        selectedReport.photo_urls.forEach((photoUrl) => {
-          if (photosPerPage > 0 && photosPerPage % (photosPerRow * 3) === 0) {
-            pdf.addPage()
-            currentY = 15
-            photosPerPage = 0
-          }
-
-          const col = photosPerPage % photosPerRow
-          const row = Math.floor(photosPerPage / photosPerRow)
-          const xPos = 15 + col * (photoWidth + 15)
-          const yPos = currentY + row * (photoHeight + 10)
-
-          try {
-            fetch(photoUrl)
-              .then(r => r.blob())
-              .then(blob => {
-                const reader = new FileReader()
-                reader.onload = (e) => {
-                  pdf.addImage(e.target.result, 'JPEG', xPos, yPos, photoWidth, photoHeight)
-                }
-                reader.readAsDataURL(blob)
-              })
-          } catch (err) {
-            console.log('No se pudo cargar la foto')
-          }
-
-          photosPerPage++
-        })
       }
 
       const pageCount = pdf.internal.pages.length - 1
@@ -215,194 +171,95 @@ export default function ViewReports() {
         pdf.setPage(i)
         pdf.setFontSize(8)
         pdf.setTextColor(150, 150, 150)
-        pdf.text('Página ' + i + ' de ' + pageCount, pageWidth / 2, pageHeight - 8, { align: 'center' })
+        const pageText = 'Página ' + i + ' de ' + pageCount
+        pdf.text(pageText, pageWidth / 2, pageHeight - 8, { align: 'center' })
       }
 
-      const fileName = 'Informe_' + selectedReport.rework_name + '_' + new Date().getTime() + '.pdf'
+      const fileName = 'Informe_' + selectedReport.rework_name + '_' + Date.now() + '.pdf'
       pdf.save(fileName)
       setExporting(false)
     } catch (error) {
-      console.error('Error exportando PDF:', error)
+      console.error('Error PDF:', error)
       setExporting(false)
     }
   }
 
-  const exportToWord = async () => {
-    if (!selectedReport) return
-    setExporting(true)
-
-    try {
-      const rows = [
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Técnico', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.technician_name)], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Fecha', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(new Date(selectedReport.date).toLocaleDateString('es-ES'))], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Cliente', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.customer)], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Depósito', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.depot)], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Proyecto', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.project)], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Unidad', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.unit)], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-        new TableRow({
-          cells: [
-            new TableCell({ children: [new Paragraph({ text: 'Nº Convertidor', bold: true })], width: { size: 30, type: 'pct' } }),
-            new TableCell({ children: [new Paragraph(selectedReport.converter_number.toString())], width: { size: 70, type: 'pct' } }),
-          ],
-        }),
-      ]
-
-      const doc = new Document({
-        sections: [{
-          children: [
-            new Paragraph({
-              text: 'INFORME DE REWORK - ABB',
-              bold: true,
-              fontSize: 24,
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
-            }),
-            new Table({
-              rows: rows,
-              width: { size: 100, type: 'pct' },
-            }),
-            new Paragraph({ text: '' }),
-            new Paragraph({
-              text: 'Defecto Detectado:',
-              bold: true,
-              spacing: { before: 200, after: 100 },
-            }),
-            new Paragraph({
-              text: selectedReport.detected_defect,
-              spacing: { after: 200 },
-            }),
-            new Paragraph({
-              text: 'Puntos ejecutados:',
-              bold: true,
-              spacing: { before: 200, after: 100 },
-            }),
-            new Paragraph({
-              text: selectedReport.rework_points,
-              spacing: { after: 200 },
-            }),
-            ...(selectedReport.comments ? [
-              new Paragraph({
-                text: 'Observaciones:',
-                bold: true,
-                spacing: { before: 200, after: 100 },
-              }),
-              new Paragraph({
-                text: selectedReport.comments,
-                spacing: { after: 200 },
-              }),
-            ] : []),
-          ],
-        }],
-      })
-
-      const blob = await Packer.toBlob(doc)
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'Informe_' + selectedReport.rework_name + '_' + new Date().getTime() + '.docx'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-      
-      setExporting(false)
-    } catch (error) {
-      console.error('Error exportando Word:', error)
-      setExporting(false)
-    }
+  const exportToWord = () => {
+    alert('Exportación a Word - Función en desarrollo')
+    setExporting(false)
   }
 
   const printReport = () => {
     if (!selectedReport) return
 
     const printWindow = window.open('', '', 'height=800,width=1000')
-    const html = '<html><head><title>Informe de Rework</title><style>' +
-      'body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }' +
-      'h1 { color: #FF000F; text-align: center; margin-bottom: 5px; }' +
-      '.subtitle { text-align: center; color: #666; margin-bottom: 30px; }' +
-      '.row { margin: 15px 0; display: grid; grid-template-columns: 200px 1fr; border-bottom: 1px solid #eee; padding-bottom: 10px; }' +
-      '.label { font-weight: bold; color: #333; }' +
-      '.value { color: #666; }' +
-      '.section { margin-top: 30px; margin-bottom: 25px; }' +
-      '.section-title { font-weight: bold; color: #FF000F; margin-bottom: 10px; background: #f5f5f5; padding: 10px; }' +
-      '.signature { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }' +
-      'img { max-width: 400px; margin: 10px 0; }' +
-      '.photos { margin-top: 20px; }' +
-      '.photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }' +
-      '.photo-grid img { max-width: 100%; height: auto; border: 1px solid #ddd; }' +
+    
+    let htmlContent = '<html><head><title>Informe</title><style>' +
+      'body{font-family:Arial;margin:40px;line-height:1.6}' +
+      'h1{color:#FF000F;text-align:center;margin-bottom:5px}' +
+      '.subtitle{text-align:center;color:#666;margin-bottom:30px}' +
+      '.section{margin-top:30px;margin-bottom:25px}' +
+      '.section-title{font-weight:bold;color:#FF000F;background:#f5f5f5;padding:10px;margin-bottom:10px}' +
+      '.row{margin:15px 0;display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid #eee;padding-bottom:10px}' +
+      '.label{font-weight:bold;color:#333}' +
+      '.value{color:#666}' +
+      'img{max-width:400px;margin:10px 0}' +
       '</style></head><body>' +
       '<h1>INFORME DE REWORK - ABB</h1>' +
-      '<div class="subtitle">Field Service Report</div>' +
-      '<div class="section">' +
-      '<div class="section-title">INFORMACIÓN GENERAL</div>' +
-      '<div class="row"><div class="label">Técnico:</div><div class="value">' + selectedReport.technician_name + '</div></div>' +
-      '<div class="row"><div class="label">Fecha:</div><div class="value">' + new Date(selectedReport.date).toLocaleDateString('es-ES') + '</div></div>' +
-      (selectedReport.ticket_number ? '<div class="row"><div class="label">Ticket:</div><div class="value">' + selectedReport.ticket_number + '</div></div>' : '') +
-      '<div class="row"><div class="label">Cliente:</div><div class="value">' + selectedReport.customer + '</div></div>' +
-      '<div class="row"><div class="label">Depósito:</div><div class="value">' + selectedReport.depot + '</div></div>' +
-      '<div class="row"><div class="label">Proyecto:</div><div class="value">' + selectedReport.project + '</div></div>' +
-      '</div>' +
-      '<div class="section">' +
-      '<div class="section-title">EQUIPO</div>' +
-      '<div class="row"><div class="label">Unidad:</div><div class="value">' + selectedReport.unit + '</div></div>' +
-      '<div class="row"><div class="label">Nº Convertidor:</div><div class="value">' + selectedReport.converter_number + '</div></div>' +
-      (selectedReport.material_number ? '<div class="row"><div class="label">Material Nr:</div><div class="value">' + selectedReport.material_number + '</div></div>' : '') +
-      '</div>' +
-      '<div class="section">' +
-      '<div class="section-title">DESCRIPCIÓN DEL TRABAJO</div>' +
-      '<div class="row"><div class="label">Defecto Detectado:</div><div class="value">' + selectedReport.detected_defect.replace(/
-/g, '<br>') + '</div></div>' +
-      '<div class="row"><div class="label">Rework Ejecutado:</div><div class="value">' + selectedReport.rework_name + '</div></div>' +
-      '<div class="row"><div class="label">Puntos Ejecutados:</div><div class="value">' + selectedReport.rework_points.replace(/
-/g, '<br>') + '</div></div>' +
-      (selectedReport.comments ? '<div class="row"><div class="label">Observaciones:</div><div class="value">' + selectedReport.comments.replace(/
-/g, '<br>') + '</div></div>' : '') +
-      '</div>' +
-      (selectedReport.signature_url ? '<div class="signature"><div class="section-title">FIRMA DEL TÉCNICO</div><img src="' + selectedReport.signature_url + '" style="max-width: 400px;" /></div>' : '') +
-      (selectedReport.photo_urls && selectedReport.photo_urls.length > 0 ? '<div class="photos"><div class="section-title">FOTOGRAFÍAS DEL TRABAJO</div><div class="photo-grid">' + selectedReport.photo_urls.map(url => '<img src="' + url + '" />').join('') + '</div></div>' : '') +
-      '</body></html>'
+      '<div class="subtitle">Field Service Report</div>'
     
-    printWindow.document.write(html)
+    htmlContent += '<div class="section">'
+    htmlContent += '<div class="section-title">INFORMACIÓN GENERAL</div>'
+    htmlContent += '<div class="row"><div class="label">Técnico:</div><div class="value">' + selectedReport.technician_name + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Fecha:</div><div class="value">' + new Date(selectedReport.date).toLocaleDateString('es-ES') + '</div></div>'
+    
+    if (selectedReport.ticket_number) {
+      htmlContent += '<div class="row"><div class="label">Ticket:</div><div class="value">' + selectedReport.ticket_number + '</div></div>'
+    }
+    
+    htmlContent += '<div class="row"><div class="label">Cliente:</div><div class="value">' + selectedReport.customer + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Depósito:</div><div class="value">' + selectedReport.depot + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Proyecto:</div><div class="value">' + selectedReport.project + '</div></div>'
+    htmlContent += '</div>'
+
+    htmlContent += '<div class="section">'
+    htmlContent += '<div class="section-title">EQUIPO</div>'
+    htmlContent += '<div class="row"><div class="label">Unidad:</div><div class="value">' + selectedReport.unit + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Convertidor:</div><div class="value">' + selectedReport.converter_number + '</div></div>'
+    
+    if (selectedReport.material_number) {
+      htmlContent += '<div class="row"><div class="label">Material:</div><div class="value">' + selectedReport.material_number + '</div></div>'
+    }
+    htmlContent += '</div>'
+
+    htmlContent += '<div class="section">'
+    htmlContent += '<div class="section-title">DESCRIPCIÓN</div>'
+    htmlContent += '<div class="row"><div class="label">Defecto:</div><div class="value">' + selectedReport.detected_defect + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Rework:</div><div class="value">' + selectedReport.rework_name + '</div></div>'
+    htmlContent += '<div class="row"><div class="label">Puntos:</div><div class="value">' + selectedReport.rework_points + '</div></div>'
+    
+    if (selectedReport.comments) {
+      htmlContent += '<div class="row"><div class="label">Observaciones:</div><div class="value">' + selectedReport.comments + '</div></div>'
+    }
+    htmlContent += '</div>'
+
+    if (selectedReport.signature_url) {
+      htmlContent += '<div class="section"><div class="section-title">FIRMA</div><img src="' + selectedReport.signature_url + '" /></div>'
+    }
+
+    htmlContent += '</body></html>'
+
+    printWindow.document.write(htmlContent)
     printWindow.document.close()
     setTimeout(() => printWindow.print(), 250)
   }
 
-  if (loading) return <div className="loading">⏳ Cargando informes...</div>
+  if (loading) return <div className="loading">Cargando...</div>
 
   return (
     <div className="view-reports">
       {reports.length === 0 ? (
-        <p className="no-reports">📋 No hay informes guardados aún. ¡Crea el primero!</p>
+        <p className="no-reports">No hay informes guardados</p>
       ) : (
         <>
           <div className="reports-list">
@@ -412,122 +269,102 @@ export default function ViewReports() {
                 className={'report-item ' + (selectedReport?.id === report.id ? 'active' : '')}
                 onClick={() => setSelectedReport(report)}
               >
-                <div className="report-header">
-                  <h3>{report.rework_name}</h3>
-                  <span className="date">{new Date(report.date).toLocaleDateString('es-ES')}</span>
-                </div>
-                <p className="tech-name">👤 {report.technician_name}</p>
-                <p className="customer-name">🏢 {report.customer}</p>
+                <h3>{report.rework_name}</h3>
+                <p>{report.technician_name}</p>
               </div>
             ))}
           </div>
 
           {selectedReport && (
             <div className="report-detail">
-              <div className="detail-header">
-                <h2>{selectedReport.rework_name}</h2>
-                <button onClick={() => setSelectedReport(null)} className="close-btn">✕</button>
+              <h2>{selectedReport.rework_name}</h2>
+
+              <div className="export-buttons">
+                <button onClick={exportToPDF} className="export-btn">PDF</button>
+                <button onClick={exportToWord} className="export-btn">Word</button>
+                <button onClick={printReport} className="export-btn">Imprimir</button>
               </div>
 
-              <div className="detail-body">
-                <div className="export-buttons">
-                  <button onClick={exportToPDF} disabled={exporting} className="export-btn pdf-btn" title="Descargar como PDF">
-                    📄 PDF
-                  </button>
-                  <button onClick={exportToWord} disabled={exporting} className="export-btn word-btn" title="Descargar como Word">
-                    📝 Word
-                  </button>
-                  <button onClick={printReport} disabled={exporting} className="export-btn print-btn" title="Imprimir">
-                    🖨️ Imprimir
-                  </button>
-                </div>
-
-                <div className="detail-row">
-                  <span className="label">👤 Técnico:</span>
-                  <span className="value">{selectedReport.technician_name}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">📅 Fecha:</span>
-                  <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES')}</span>
-                </div>
-                {selectedReport.ticket_number && (
-                  <div className="detail-row">
-                    <span className="label">🎫 Ticket:</span>
-                    <span className="value">{selectedReport.ticket_number}</span>
-                  </div>
-                )}
-                <div className="detail-row">
-                  <span className="label">🏢 Cliente:</span>
-                  <span className="value">{selectedReport.customer}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">📍 Depósito:</span>
-                  <span className="value">{selectedReport.depot}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">📁 Proyecto:</span>
-                  <span className="value">{selectedReport.project}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">🔧 Unidad:</span>
-                  <span className="value">{selectedReport.unit}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">⚡ Nº Convertidor:</span>
-                  <span className="value">{selectedReport.converter_number}</span>
-                </div>
-                {selectedReport.material_number && (
-                  <div className="detail-row">
-                    <span className="label">📦 Material Nr:</span>
-                    <span className="value">{selectedReport.material_number}</span>
-                  </div>
-                )}
-                <div className="detail-row">
-                  <span className="label">⚠️ Defecto Detectado:</span>
-                  <span className="value">{selectedReport.detected_defect}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">🔨 Rework Ejecutado:</span>
-                  <span className="value">{selectedReport.rework_name}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">📝 Puntos Ejecutados:</span>
-                  <span className="value">{selectedReport.rework_points}</span>
-                </div>
-                {selectedReport.comments && (
-                  <div className="detail-row">
-                    <span className="label">💬 Observaciones:</span>
-                    <span className="value">{selectedReport.comments}</span>
-                  </div>
-                )}
-
-                {selectedReport.signature_url && (
-                  <div className="signature-section">
-                    <h4>✍️ Firma del Técnico</h4>
-                    <div className="signature-display">
-                      <img src={selectedReport.signature_url} alt="Firma" />
-                    </div>
-                  </div>
-                )}
-
-                {selectedReport.photo_urls && selectedReport.photo_urls.length > 0 && (
-                  <div className="photos-section">
-                    <h4>📸 Fotografías del Trabajo ({selectedReport.photo_urls.length})</h4>
-                    <div className="photos-grid">
-                      {selectedReport.photo_urls.map((url, index) => (
-                        <img key={index} src={url} alt={'Foto ' + (index + 1)} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <button 
-                  onClick={() => deleteReport(selectedReport.id)}
-                  className="delete-btn"
-                >
-                  🗑️ Eliminar Informe
-                </button>
+              <div className="detail-row">
+                <span className="label">Técnico:</span>
+                <span className="value">{selectedReport.technician_name}</span>
               </div>
+              <div className="detail-row">
+                <span className="label">Fecha:</span>
+                <span className="value">{new Date(selectedReport.date).toLocaleDateString('es-ES')}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Cliente:</span>
+                <span className="value">{selectedReport.customer}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Depósito:</span>
+                <span className="value">{selectedReport.depot}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Proyecto:</span>
+                <span className="value">{selectedReport.project}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Unidad:</span>
+                <span className="value">{selectedReport.unit}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Convertidor:</span>
+                <span className="value">{selectedReport.converter_number}</span>
+              </div>
+
+              {selectedReport.material_number && (
+                <div className="detail-row">
+                  <span className="label">Material:</span>
+                  <span className="value">{selectedReport.material_number}</span>
+                </div>
+              )}
+
+              <div className="detail-row">
+                <span className="label">Defecto:</span>
+                <span className="value">{selectedReport.detected_defect}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Rework:</span>
+                <span className="value">{selectedReport.rework_name}</span>
+              </div>
+              <div className="detail-row">
+                <span className="label">Puntos:</span>
+                <span className="value">{selectedReport.rework_points}</span>
+              </div>
+
+              {selectedReport.comments && (
+                <div className="detail-row">
+                  <span className="label">Observaciones:</span>
+                  <span className="value">{selectedReport.comments}</span>
+                </div>
+              )}
+
+              {selectedReport.signature_url && (
+                <div className="signature-section">
+                  <h4>Firma</h4>
+                  <img src={selectedReport.signature_url} alt="Firma" />
+                </div>
+              )}
+
+              {selectedReport.photo_urls && selectedReport.photo_urls.length > 0 && (
+                <div className="photos-section">
+                  <h4>Fotos ({selectedReport.photo_urls.length})</h4>
+                  <div className="photos-grid">
+                    {selectedReport.photo_urls.map((url, index) => (
+                      <img key={index} src={url} alt={'Foto ' + index} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button onClick={() => deleteReport(selectedReport.id)} className="delete-btn">
+                Eliminar
+              </button>
+              <button onClick={() => setSelectedReport(null)} className="close-btn">
+                Cerrar
+              </button>
             </div>
           )}
         </>

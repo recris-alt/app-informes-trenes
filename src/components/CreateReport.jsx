@@ -7,16 +7,29 @@ export default function CreateReport() {
     technician_name: '',
     date: new Date().toISOString().split('T')[0],
     ticket_number: '',
+    motion_business: '',
     customer: '',
     depot: '',
     project: '',
     unit: '',
+    converter_type: '',
     converter_number: '',
+    converter_sn: '',
+    first_message_date: '',
+    detected_defect: '',
+    failure_classification: '',
+    start_time: '',
+    end_time: '',
     rework_name: '',
     rework_points: '',
-    material_number: '',
-    detected_defect: '',
+    fault_corrected: 'yes',
+    replaced_material_1_old: '',
+    replaced_material_1_new: '',
+    replaced_material_2_old: '',
+    replaced_material_2_new: '',
+    repair_location: '',
     comments: '',
+    conclusion: '',
     photos: [],
     signature: null
   })
@@ -40,7 +53,6 @@ export default function CreateReport() {
     localStorage.setItem('reportDraft', JSON.stringify(formData))
   }, [formData])
 
-  // Inicializar canvas de firma
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -75,7 +87,6 @@ export default function CreateReport() {
   const stopDrawing = () => {
     contextRef.current.closePath()
     setIsDrawing(false)
-    
     const canvas = canvasRef.current
     const signatureData = canvas.toDataURL('image/png')
     setFormData(prev => ({ ...prev, signature: signatureData }))
@@ -90,10 +101,7 @@ export default function CreateReport() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handlePhotoCapture = (e) => {
@@ -169,16 +177,29 @@ export default function CreateReport() {
           technician_name: formData.technician_name,
           date: formData.date,
           ticket_number: formData.ticket_number,
+          motion_business: formData.motion_business,
           customer: formData.customer,
           depot: formData.depot,
           project: formData.project,
           unit: formData.unit,
+          converter_type: formData.converter_type,
           converter_number: formData.converter_number,
+          converter_sn: formData.converter_sn,
+          first_message_date: formData.first_message_date,
+          detected_defect: formData.detected_defect,
+          failure_classification: formData.failure_classification,
+          start_time: formData.start_time,
+          end_time: formData.end_time,
           rework_name: formData.rework_name,
           rework_points: formData.rework_points,
-          material_number: formData.material_number,
-          detected_defect: formData.detected_defect,
+          fault_corrected: formData.fault_corrected,
+          replaced_material_1_old: formData.replaced_material_1_old,
+          replaced_material_1_new: formData.replaced_material_1_new,
+          replaced_material_2_old: formData.replaced_material_2_old,
+          replaced_material_2_new: formData.replaced_material_2_new,
+          repair_location: formData.repair_location,
           comments: formData.comments,
+          conclusion: formData.conclusion,
           photo_urls: photoUrls,
           signature_url: signatureUrl,
           created_at: new Date().toISOString()
@@ -186,22 +207,35 @@ export default function CreateReport() {
 
       if (error) throw error
 
-      setMessage('✅ Informe guardado correctamente')
+      setMessage('Report saved successfully')
       
       setFormData({
         technician_name: '',
         date: new Date().toISOString().split('T')[0],
         ticket_number: '',
+        motion_business: '',
         customer: '',
         depot: '',
         project: '',
         unit: '',
+        converter_type: '',
         converter_number: '',
+        converter_sn: '',
+        first_message_date: '',
+        detected_defect: '',
+        failure_classification: '',
+        start_time: '',
+        end_time: '',
         rework_name: '',
         rework_points: '',
-        material_number: '',
-        detected_defect: '',
+        fault_corrected: 'yes',
+        replaced_material_1_old: '',
+        replaced_material_1_new: '',
+        replaced_material_2_old: '',
+        replaced_material_2_new: '',
+        repair_location: '',
         comments: '',
+        conclusion: '',
         photos: [],
         signature: null
       })
@@ -211,7 +245,7 @@ export default function CreateReport() {
 
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessage('❌ Error: ' + error.message)
+      setMessage('Error: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -220,194 +254,189 @@ export default function CreateReport() {
   return (
     <div className="create-report">
       <form onSubmit={handleSubmit}>
-        <h2>Crear Nuevo Informe de Rework</h2>
+        <h2>Field Service Report</h2>
 
         <div className="form-section">
-          <h3>Información General</h3>
+          <h3>Header Information</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Ticket Number</label>
+              <input type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} placeholder="Ticket Nr" />
+            </div>
+            <div className="form-group">
+              <label>Motion Business</label>
+              <input type="text" name="motion_business" value={formData.motion_business} onChange={handleInputChange} placeholder="e.g., MOTR India" />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Affected Plant</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Customer *</label>
+              <input type="text" name="customer" value={formData.customer} onChange={handleInputChange} required placeholder="Customer name" />
+            </div>
+            <div className="form-group">
+              <label>Depot *</label>
+              <input type="text" name="depot" value={formData.depot} onChange={handleInputChange} required placeholder="Depot" />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Project *</label>
+              <input type="text" name="project" value={formData.project} onChange={handleInputChange} required placeholder="Project" />
+            </div>
+            <div className="form-group">
+              <label>Vehicle Number *</label>
+              <input type="text" name="unit" value={formData.unit} onChange={handleInputChange} required placeholder="Vehicle number" />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Converter Information</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Converter Type *</label>
+              <input type="text" name="converter_type" value={formData.converter_type} onChange={handleInputChange} required placeholder="e.g., CC1500_MS_25-3KV..." />
+            </div>
+            <div className="form-group">
+              <label>Converter Number *</label>
+              <input type="text" name="converter_number" value={formData.converter_number} onChange={handleInputChange} required placeholder="Number" />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Serial Number (SN)</label>
+              <input type="text" name="converter_sn" value={formData.converter_sn} onChange={handleInputChange} placeholder="SN" />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Failure Description</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>First Message Date</label>
+              <input type="datetime-local" name="first_message_date" value={formData.first_message_date} onChange={handleInputChange} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Detected Defect/Error Caused by *</label>
+            <textarea name="detected_defect" value={formData.detected_defect} onChange={handleInputChange} required placeholder="Describe the defect..." rows="4" />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Failure Classification</label>
+              <input type="text" name="failure_classification" value={formData.failure_classification} onChange={handleInputChange} placeholder="e.g., Power Supply" />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Service Times</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Start Time</label>
+              <input type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} />
+            </div>
+            <div className="form-group">
+              <label>End Time</label>
+              <input type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Executed Work</h3>
           
           <div className="form-group">
-            <label>Número de Ticket (opcional)</label>
-            <input
-              type="text"
-              name="ticket_number"
-              value={formData.ticket_number}
-              onChange={handleInputChange}
-              placeholder="Ej: TKT-2024-001"
-            />
+            <label>Work Description *</label>
+            <textarea name="rework_name" value={formData.rework_name} onChange={handleInputChange} required placeholder="Summary of work..." rows="3" />
           </div>
 
           <div className="form-group">
-            <label>Nombre del Técnico *</label>
-            <input
-              type="text"
-              name="technician_name"
-              value={formData.technician_name}
-              onChange={handleInputChange}
-              required
-              placeholder="Introduce tu nombre completo"
-            />
+            <label>Detailed Work Points *</label>
+            <textarea name="rework_points" value={formData.rework_points} onChange={handleInputChange} required placeholder="Detailed list of work points..." rows="6" />
           </div>
 
-          <div className="form-group">
-            <label>Fecha del Trabajo *</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label>Fault Corrected?</label>
+              <select name="fault_corrected" value={formData.fault_corrected} onChange={handleInputChange}>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <div className="form-section">
-          <h3>Datos del Cliente</h3>
-
-          <div className="form-group">
-            <label>Cliente *</label>
-            <input
-              type="text"
-              name="customer"
-              value={formData.customer}
-              onChange={handleInputChange}
-              required
-              placeholder="Nombre del cliente"
-            />
+          <h3>Replaced Material</h3>
+          
+          <div className="form-section-sub">
+            <h4>Material 1</h4>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Old Material</label>
+                <textarea name="replaced_material_1_old" value={formData.replaced_material_1_old} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
+              </div>
+              <div className="form-group">
+                <label>New Material</label>
+                <textarea name="replaced_material_1_new" value={formData.replaced_material_1_new} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Depósito *</label>
-            <input
-              type="text"
-              name="depot"
-              value={formData.depot}
-              onChange={handleInputChange}
-              required
-              placeholder="Ubicación del depósito"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Proyecto *</label>
-            <input
-              type="text"
-              name="project"
-              value={formData.project}
-              onChange={handleInputChange}
-              required
-              placeholder="Nombre del proyecto"
-            />
+          <div className="form-section-sub">
+            <h4>Material 2</h4>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Old Material</label>
+                <textarea name="replaced_material_2_old" value={formData.replaced_material_2_old} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
+              </div>
+              <div className="form-group">
+                <label>New Material</label>
+                <textarea name="replaced_material_2_new" value={formData.replaced_material_2_new} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="form-section">
-          <h3>Información del Equipo</h3>
-
-          <div className="form-group">
-            <label>Unidad *</label>
-            <input
-              type="text"
-              name="unit"
-              value={formData.unit}
-              onChange={handleInputChange}
-              required
-              placeholder="Identificación de la unidad"
-            />
+          <h3>Service Confirmation</h3>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Repair Location</label>
+              <input type="text" name="repair_location" value={formData.repair_location} onChange={handleInputChange} placeholder="Location" />
+            </div>
           </div>
 
           <div className="form-group">
-            <label>Nº Convertidor *</label>
-            <input
-              type="text"
-              name="converter_number"
-              value={formData.converter_number}
-              onChange={handleInputChange}
-              required
-              placeholder="Número del convertidor"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Número de Material (opcional)</label>
-            <input
-              type="text"
-              name="material_number"
-              value={formData.material_number}
-              onChange={handleInputChange}
-              placeholder="Ej: MAT-123456"
-            />
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h3>Descripción del Trabajo</h3>
-
-          <div className="form-group">
-            <label>Defecto Detectado *</label>
-            <textarea
-              name="detected_defect"
-              value={formData.detected_defect}
-              onChange={handleInputChange}
-              required
-              placeholder="Describe el defecto identificado..."
-              rows="3"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Nombre del Rework *</label>
-            <input
-              type="text"
-              name="rework_name"
-              value={formData.rework_name}
-              onChange={handleInputChange}
-              required
-              placeholder="Descripción breve del rework"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Puntos del Rework Ejecutados *</label>
-            <textarea
-              name="rework_points"
-              value={formData.rework_points}
-              onChange={handleInputChange}
-              required
-              placeholder="Detalla los puntos completados del rework..."
-              rows="5"
-            />
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h3>Documentación</h3>
-
-          <div className="form-group">
-            <label>Fotografías del Trabajo</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handlePhotoCapture}
-              capture="environment"
-            />
-            <small>Puedes subir varias fotos del trabajo realizado</small>
+            <label>Pictures</label>
+            <input type="file" multiple accept="image/*" onChange={handlePhotoCapture} capture="environment" />
+            <small>Upload pictures of the work</small>
           </div>
 
           {photoPreview.length > 0 && (
             <div className="photo-preview">
-              <p>📸 Fotos cargadas: {photoPreview.length}</p>
+              <p>Photos uploaded: {photoPreview.length}</p>
               <div className="preview-grid">
                 {photoPreview.map((photo, index) => (
                   <div key={index} className="preview-item">
                     <img src={photo} alt={'Preview ' + index} />
-                    <button 
-                      type="button" 
-                      onClick={() => removePhoto(index)}
-                      className="remove-btn"
-                    >
-                      ✕
-                    </button>
+                    <button type="button" onClick={() => removePhoto(index)} className="remove-btn">✕</button>
                   </div>
                 ))}
               </div>
@@ -415,45 +444,34 @@ export default function CreateReport() {
           )}
 
           <div className="form-group">
-            <label>Firma del Técnico *</label>
+            <label>Service Engineer Signature *</label>
             <div className="signature-container">
-              <canvas
-                ref={canvasRef}
-                className="signature-canvas"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-              />
+              <canvas ref={canvasRef} className="signature-canvas" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} />
               <div className="signature-buttons">
-                <button 
-                  type="button" 
-                  onClick={clearSignature}
-                  className="clear-signature-btn"
-                >
-                  🗑️ Limpiar Firma
-                </button>
+                <button type="button" onClick={clearSignature} className="clear-signature-btn">Clear Signature</button>
               </div>
             </div>
-            <small>Dibuja tu firma con el ratón o con el dedo (táctil)</small>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Conclusion</h3>
+          
+          <div className="form-group">
+            <label>Conclusion / Additional Notes</label>
+            <textarea name="conclusion" value={formData.conclusion} onChange={handleInputChange} placeholder="Final notes..." rows="3" />
           </div>
 
           <div className="form-group">
-            <label>Observaciones Adicionales</label>
-            <textarea
-              name="comments"
-              value={formData.comments}
-              onChange={handleInputChange}
-              placeholder="Comentarios, notas o detalles adicionales..."
-              rows="3"
-            />
+            <label>Comments</label>
+            <textarea name="comments" value={formData.comments} onChange={handleInputChange} placeholder="Additional comments..." rows="3" />
           </div>
         </div>
 
         {message && <div className="message">{message}</div>}
 
         <button type="submit" disabled={loading} className="submit-btn">
-          {loading ? '⏳ Guardando Informe...' : '💾 Guardar Informe Completo'}
+          {loading ? 'Saving Report...' : 'Save Field Service Report'}
         </button>
       </form>
     </div>

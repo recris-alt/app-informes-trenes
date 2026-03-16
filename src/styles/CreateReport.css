@@ -13,14 +13,9 @@
 }
 
 .form-section {
-  margin-bottom: 35px;
+  margin-bottom: 30px;
   padding-bottom: 25px;
   border-bottom: 2px solid #f0f0f0;
-}
-
-.form-section:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
 }
 
 .form-section h3 {
@@ -32,17 +27,31 @@
   border-bottom: 2px solid #FF000F;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.form-section-sub {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.form-section-sub h4 {
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
 }
 
 .form-group label {
@@ -54,9 +63,9 @@ form {
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 12px;
+  padding: 10px;
   border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
   transition: all 0.3s ease;
@@ -67,16 +76,15 @@ form {
 .form-group select:focus {
   outline: none;
   border-color: #FF000F;
-  box-shadow: 0 0 0 4px rgba(255,0,15,0.1);
+  box-shadow: 0 0 0 3px rgba(255,0,15,0.1);
 }
 
 .form-group small {
   color: #666;
   font-size: 12px;
-  margin-top: -5px;
+  margin-top: -3px;
 }
 
-/* Firma tÃ¡ctil */
 .signature-container {
   border: 2px dashed #e0e0e0;
   border-radius: 8px;
@@ -97,9 +105,8 @@ form {
   background: white;
   display: block;
   width: 100%;
-  max-width: 500px;
-  touch-action: none;
   height: 200px;
+  touch-action: none;
 }
 
 .signature-buttons {
@@ -230,7 +237,7 @@ form {
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(255, 0, 15, 0.3);
   letter-spacing: 0.5px;
-  margin-top: 20px;
+  width: 100%;
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -245,6 +252,12 @@ form {
   transform: none;
 }
 
+@media (max-width: 900px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 600px) {
   .create-report {
     padding: 20px;
@@ -256,9 +269,5 @@ form {
 
   .preview-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .signature-canvas {
-    max-width: 100%;
   }
 }

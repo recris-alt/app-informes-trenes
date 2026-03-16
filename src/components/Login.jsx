@@ -13,35 +13,49 @@ export default function Login({ onLoginSuccess }) {
     setError('')
 
     try {
-      if (!accessCode.trim()) {
+      const code = accessCode.trim().toUpperCase()
+
+      if (!code) {
         setError('Ingresa el código de acceso')
         setLoading(false)
         return
       }
 
+      console.log('Buscando código:', code)
+
       const { data, error: fetchError } = await supabase
         .from('users')
-        .select('*')
-        .eq('access_code', accessCode.trim())
-        .single()
+        .select('id, name, access_code')
 
-      if (fetchError || !data) {
+      console.log('Datos de usuarios:', data)
+      console.log('Error:', fetchError)
+
+      if (fetchError) {
+        setError('Error al conectar con la base de datos')
+        setLoading(false)
+        return
+      }
+
+      const user = data.find(u => u.access_code.trim().toUpperCase() === code)
+
+      if (!user) {
         setError('Código de acceso incorrecto')
         setLoading(false)
         return
       }
 
       localStorage.setItem('userSession', JSON.stringify({
-        id: data.id,
-        name: data.name,
-        accessCode: data.access_code,
+        id: user.id,
+        name: user.name,
+        accessCode: user.access_code,
         loginTime: new Date().toISOString()
       }))
 
       setAccessCode('')
-      onLoginSuccess(data)
+      onLoginSuccess(user)
     } catch (err) {
-      setError('Error al verificar código: ' + err.message)
+      console.error('Error:', err)
+      setError('Error: ' + err.message)
     } finally {
       setLoading(false)
     }

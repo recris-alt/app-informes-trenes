@@ -13,14 +13,12 @@ export default function CreateReport() {
     project: '',
     unit: '',
     converter_type: '',
-    converter_number: '',
     converter_sn: '',
     first_message_date: '',
     detected_defect: '',
     failure_classification: '',
     start_time: '',
     end_time: '',
-    rework_name: '',
     rework_points: '',
     fault_corrected: 'yes',
     replaced_material_1_old: '',
@@ -28,7 +26,6 @@ export default function CreateReport() {
     replaced_material_2_old: '',
     replaced_material_2_new: '',
     repair_location: '',
-    comments: '',
     conclusion: '',
     photos: [],
     signature: null
@@ -41,6 +38,7 @@ export default function CreateReport() {
   
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     const savedDraft = localStorage.getItem('reportDraft')
@@ -58,9 +56,9 @@ export default function CreateReport() {
     if (!canvas) return
 
     canvas.width = canvas.offsetWidth * 2
-    canvas.height = 200 * 2
+    canvas.height = 150 * 2
     canvas.style.width = canvas.offsetWidth + 'px'
-    canvas.style.height = '200px'
+    canvas.style.height = '150px'
 
     const context = canvas.getContext('2d')
     context.scale(2, 2)
@@ -183,14 +181,12 @@ export default function CreateReport() {
           project: formData.project,
           unit: formData.unit,
           converter_type: formData.converter_type,
-          converter_number: formData.converter_number,
           converter_sn: formData.converter_sn,
           first_message_date: formData.first_message_date,
           detected_defect: formData.detected_defect,
           failure_classification: formData.failure_classification,
           start_time: formData.start_time,
           end_time: formData.end_time,
-          rework_name: formData.rework_name,
           rework_points: formData.rework_points,
           fault_corrected: formData.fault_corrected,
           replaced_material_1_old: formData.replaced_material_1_old,
@@ -198,7 +194,6 @@ export default function CreateReport() {
           replaced_material_2_old: formData.replaced_material_2_old,
           replaced_material_2_new: formData.replaced_material_2_new,
           repair_location: formData.repair_location,
-          comments: formData.comments,
           conclusion: formData.conclusion,
           photo_urls: photoUrls,
           signature_url: signatureUrl,
@@ -219,14 +214,12 @@ export default function CreateReport() {
         project: '',
         unit: '',
         converter_type: '',
-        converter_number: '',
         converter_sn: '',
         first_message_date: '',
         detected_defect: '',
         failure_classification: '',
         start_time: '',
         end_time: '',
-        rework_name: '',
         rework_points: '',
         fault_corrected: 'yes',
         replaced_material_1_old: '',
@@ -234,7 +227,6 @@ export default function CreateReport() {
         replaced_material_2_old: '',
         replaced_material_2_new: '',
         repair_location: '',
-        comments: '',
         conclusion: '',
         photos: [],
         signature: null
@@ -305,10 +297,6 @@ export default function CreateReport() {
               <label>Converter Type *</label>
               <input type="text" name="converter_type" value={formData.converter_type} onChange={handleInputChange} required placeholder="e.g., CC1500_MS_25-3KV..." />
             </div>
-            <div className="form-group">
-              <label>Converter Number *</label>
-              <input type="text" name="converter_number" value={formData.converter_number} onChange={handleInputChange} required placeholder="Number" />
-            </div>
           </div>
 
           <div className="form-row">
@@ -360,11 +348,6 @@ export default function CreateReport() {
         <div className="form-section">
           <h3>Executed Work</h3>
           
-          <div className="form-group">
-            <label>Work Description *</label>
-            <textarea name="rework_name" value={formData.rework_name} onChange={handleInputChange} required placeholder="Summary of work..." rows="3" />
-          </div>
-
           <div className="form-group">
             <label>Detailed Work Points *</label>
             <textarea name="rework_points" value={formData.rework_points} onChange={handleInputChange} required placeholder="Detailed list of work points..." rows="6" />
@@ -425,8 +408,14 @@ export default function CreateReport() {
 
           <div className="form-group">
             <label>Pictures</label>
-            <input type="file" multiple accept="image/*" onChange={handlePhotoCapture} capture="environment" />
-            <small>Upload pictures of the work</small>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              multiple 
+              accept="image/*" 
+              onChange={handlePhotoCapture} 
+            />
+            <small>Upload pictures from camera, gallery or files</small>
           </div>
 
           {photoPreview.length > 0 && (
@@ -451,6 +440,7 @@ export default function CreateReport() {
                 <button type="button" onClick={clearSignature} className="clear-signature-btn">Clear Signature</button>
               </div>
             </div>
+            <small>Draw your signature with your finger or mouse</small>
           </div>
         </div>
 
@@ -460,11 +450,6 @@ export default function CreateReport() {
           <div className="form-group">
             <label>Conclusion / Additional Notes</label>
             <textarea name="conclusion" value={formData.conclusion} onChange={handleInputChange} placeholder="Final notes..." rows="3" />
-          </div>
-
-          <div className="form-group">
-            <label>Comments</label>
-            <textarea name="comments" value={formData.comments} onChange={handleInputChange} placeholder="Additional comments..." rows="3" />
           </div>
         </div>
 

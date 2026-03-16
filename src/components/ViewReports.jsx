@@ -204,44 +204,35 @@ export default function ViewReports() {
       yPosition += 5
 
       // REPLACED MATERIAL
-      if (selectedReport.replaced_material_1_old || selectedReport.replaced_material_1_new) {
+      const materials = selectedReport.replaced_materials || []
+      if (materials.length > 0) {
         pdf.setFontSize(10)
         pdf.setFont(undefined, 'bold')
         pdf.text('REPLACED MATERIAL', 15, yPosition)
         yPosition += 6
 
-        pdf.setFontSize(9)
-        pdf.setFont(undefined, 'bold')
-        pdf.text('Material 1', 15, yPosition)
-        yPosition += 5
+        materials.forEach((material, idx) => {
+          if (yPosition > pageHeight - 50) {
+            pdf.addPage()
+            yPosition = 15
+          }
 
-        pdf.setFont(undefined, 'normal')
-        pdf.text('Old Material:', 15, yPosition)
-        const oldMat1 = pdf.splitTextToSize(selectedReport.replaced_material_1_old || '', 70)
-        pdf.text(oldMat1, 15, yPosition + 4)
-        
-        pdf.text('New Material:', 105, yPosition)
-        const newMat1 = pdf.splitTextToSize(selectedReport.replaced_material_1_new || '', 70)
-        pdf.text(newMat1, 105, yPosition + 4)
-        
-        yPosition += Math.max(oldMat1.length, newMat1.length) * 4 + 8
-
-        if (selectedReport.replaced_material_2_old || selectedReport.replaced_material_2_new) {
+          pdf.setFontSize(9)
           pdf.setFont(undefined, 'bold')
-          pdf.text('Material 2', 15, yPosition)
+          pdf.text('Material ' + (idx + 1), 15, yPosition)
           yPosition += 5
 
           pdf.setFont(undefined, 'normal')
           pdf.text('Old Material:', 15, yPosition)
-          const oldMat2 = pdf.splitTextToSize(selectedReport.replaced_material_2_old || '', 70)
-          pdf.text(oldMat2, 15, yPosition + 4)
+          pdf.text('Material Nr: ' + (material.material_number_old || ''), 15, yPosition + 4)
+          pdf.text('Serial Nr: ' + (material.serial_number_old || ''), 15, yPosition + 8)
           
           pdf.text('New Material:', 105, yPosition)
-          const newMat2 = pdf.splitTextToSize(selectedReport.replaced_material_2_new || '', 70)
-          pdf.text(newMat2, 105, yPosition + 4)
+          pdf.text('Material Nr: ' + (material.material_number_new || ''), 105, yPosition + 4)
+          pdf.text('Serial Nr: ' + (material.serial_number_new || ''), 105, yPosition + 8)
           
-          yPosition += Math.max(oldMat2.length, newMat2.length) * 4 + 8
-        }
+          yPosition += 15
+        })
 
         pdf.setLineWidth(0.5)
         pdf.line(15, yPosition, pageWidth - 15, yPosition)
@@ -277,7 +268,6 @@ export default function ViewReports() {
         pdf.text('PICTURES', 15, yPosition)
         yPosition += 8
 
-        let photosAdded = 0
         selectedReport.photo_urls.forEach((photoUrl) => {
           if (yPosition > pageHeight - 60) {
             pdf.addPage()
@@ -298,10 +288,7 @@ export default function ViewReports() {
             console.log('Could not load photo')
           }
 
-          photosAdded++
-          if (photosAdded % 2 === 0) {
-            yPosition += 65
-          }
+          yPosition += 65
         })
       }
 
@@ -358,6 +345,19 @@ export default function ViewReports() {
 
     const printWindow = window.open('', '', 'height=800,width=1000')
     
+    const materials = selectedReport.replaced_materials || []
+    let materialsHTML = ''
+    if (materials.length > 0) {
+      materialsHTML = '<h3>REPLACED MATERIALS</h3>'
+      materials.forEach((material, idx) => {
+        materialsHTML += '<div style="margin-bottom:15px; padding:10px; background:#f5f5f5; border-radius:5px;">'
+        materialsHTML += '<b>Material ' + (idx + 1) + ':</b><br>'
+        materialsHTML += '<b>Old:</b> Nr: ' + (material.material_number_old || '') + ' | SN: ' + (material.serial_number_old || '') + '<br>'
+        materialsHTML += '<b>New:</b> Nr: ' + (material.material_number_new || '') + ' | SN: ' + (material.serial_number_new || '') + '<br>'
+        materialsHTML += '</div>'
+      })
+    }
+    
     let html = '<html><head><title>Field Service Report</title><style>' +
       'body{font-family:Arial;margin:30px;line-height:1.4;font-size:10pt}' +
       'h2{color:#FF000F;font-size:14pt;margin:15px 0 10px 0}' +
@@ -384,6 +384,7 @@ export default function ViewReports() {
       '<p><b>Start:</b> ' + (selectedReport.start_time || '') + ' | <b>End:</b> ' + (selectedReport.end_time || '') + '</p>' +
       '<h3>EXECUTED WORK</h3>' +
       '<p>' + (selectedReport.rework_points || '') + '</p>' +
+      materialsHTML +
       '<h3>SERVICE CONFIRMATION</h3>' +
       '<p><b>Repair Date:</b> ' + new Date(selectedReport.date).toLocaleString() + '</p>' +
       '<p><b>Repair Location:</b> ' + (selectedReport.repair_location || '') + '</p>' +
@@ -460,6 +461,19 @@ export default function ViewReports() {
                   <h4>EXECUTED WORK</h4>
                   <p>{selectedReport.rework_points}</p>
                 </div>
+
+                {selectedReport.replaced_materials && selectedReport.replaced_materials.length > 0 && (
+                  <div className="detail-section">
+                    <h4>REPLACED MATERIALS</h4>
+                    {selectedReport.replaced_materials.map((material, idx) => (
+                      <div key={idx} className="material-display">
+                        <p><b>Material {idx + 1}:</b></p>
+                        <p><b>Old:</b> Nr: {material.material_number_old} | SN: {material.serial_number_old}</p>
+                        <p><b>New:</b> Nr: {material.material_number_new} | SN: {material.serial_number_new}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="detail-section">
                   <h4>CONCLUSION</h4>

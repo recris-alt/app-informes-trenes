@@ -21,10 +21,7 @@ export default function CreateReport() {
     end_time: '',
     rework_points: '',
     fault_corrected: 'yes',
-    replaced_material_1_old: '',
-    replaced_material_1_new: '',
-    replaced_material_2_old: '',
-    replaced_material_2_new: '',
+    replaced_materials: [],
     repair_location: '',
     conclusion: '',
     photos: [],
@@ -38,7 +35,6 @@ export default function CreateReport() {
   
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
-  const fileInputRef = useRef(null)
 
   useEffect(() => {
     const savedDraft = localStorage.getItem('reportDraft')
@@ -100,6 +96,37 @@ export default function CreateReport() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const addMaterial = () => {
+    const newMaterial = {
+      material_number_old: '',
+      serial_number_old: '',
+      material_number_new: '',
+      serial_number_new: ''
+    }
+    setFormData(prev => ({
+      ...prev,
+      replaced_materials: [...prev.replaced_materials, newMaterial]
+    }))
+  }
+
+  const removeMaterial = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      replaced_materials: prev.replaced_materials.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleMaterialChange = (index, field, value) => {
+    setFormData(prev => {
+      const updatedMaterials = [...prev.replaced_materials]
+      updatedMaterials[index] = {
+        ...updatedMaterials[index],
+        [field]: value
+      }
+      return { ...prev, replaced_materials: updatedMaterials }
+    })
   }
 
   const handlePhotoCapture = (e) => {
@@ -189,10 +216,7 @@ export default function CreateReport() {
           end_time: formData.end_time,
           rework_points: formData.rework_points,
           fault_corrected: formData.fault_corrected,
-          replaced_material_1_old: formData.replaced_material_1_old,
-          replaced_material_1_new: formData.replaced_material_1_new,
-          replaced_material_2_old: formData.replaced_material_2_old,
-          replaced_material_2_new: formData.replaced_material_2_new,
+          replaced_materials: formData.replaced_materials,
           repair_location: formData.repair_location,
           conclusion: formData.conclusion,
           photo_urls: photoUrls,
@@ -222,10 +246,7 @@ export default function CreateReport() {
         end_time: '',
         rework_points: '',
         fault_corrected: 'yes',
-        replaced_material_1_old: '',
-        replaced_material_1_new: '',
-        replaced_material_2_old: '',
-        replaced_material_2_new: '',
+        replaced_materials: [],
         repair_location: '',
         conclusion: '',
         photos: [],
@@ -367,33 +388,78 @@ export default function CreateReport() {
         <div className="form-section">
           <h3>Replaced Material</h3>
           
-          <div className="form-section-sub">
-            <h4>Material 1</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Old Material</label>
-                <textarea name="replaced_material_1_old" value={formData.replaced_material_1_old} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
-              </div>
-              <div className="form-group">
-                <label>New Material</label>
-                <textarea name="replaced_material_1_new" value={formData.replaced_material_1_new} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
-              </div>
-            </div>
-          </div>
+          {formData.replaced_materials.length === 0 ? (
+            <p className="no-materials">No materials added yet</p>
+          ) : (
+            formData.replaced_materials.map((material, index) => (
+              <div key={index} className="form-section-sub">
+                <div className="material-header">
+                  <h4>Material {index + 1}</h4>
+                  <button 
+                    type="button" 
+                    onClick={() => removeMaterial(index)}
+                    className="remove-material-btn"
+                  >
+                    Remove
+                  </button>
+                </div>
 
-          <div className="form-section-sub">
-            <h4>Material 2</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Old Material</label>
-                <textarea name="replaced_material_2_old" value={formData.replaced_material_2_old} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
+                <div className="material-group">
+                  <div className="material-column">
+                    <h5>Old Material</h5>
+                    <div className="form-group">
+                      <label>Material Number</label>
+                      <input
+                        type="text"
+                        value={material.material_number_old}
+                        onChange={(e) => handleMaterialChange(index, 'material_number_old', e.target.value)}
+                        placeholder="e.g., 3BHE0573918R002"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Serial Number</label>
+                      <input
+                        type="text"
+                        value={material.serial_number_old}
+                        onChange={(e) => handleMaterialChange(index, 'serial_number_old', e.target.value)}
+                        placeholder="e.g., 106"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="material-column">
+                    <h5>New Material</h5>
+                    <div className="form-group">
+                      <label>Material Number</label>
+                      <input
+                        type="text"
+                        value={material.material_number_new}
+                        onChange={(e) => handleMaterialChange(index, 'material_number_new', e.target.value)}
+                        placeholder="e.g., 3BHE0573918R002"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Serial Number</label>
+                      <input
+                        type="text"
+                        value={material.serial_number_new}
+                        onChange={(e) => handleMaterialChange(index, 'serial_number_new', e.target.value)}
+                        placeholder="e.g., 58"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="form-group">
-                <label>New Material</label>
-                <textarea name="replaced_material_2_new" value={formData.replaced_material_2_new} onChange={handleInputChange} placeholder="Material Nr, Serial Nr..." rows="3" />
-              </div>
-            </div>
-          </div>
+            ))
+          )}
+
+          <button 
+            type="button" 
+            onClick={addMaterial}
+            className="add-material-btn"
+          >
+            + Add Material
+          </button>
         </div>
 
         <div className="form-section">
@@ -409,7 +475,6 @@ export default function CreateReport() {
           <div className="form-group">
             <label>Pictures</label>
             <input 
-              ref={fileInputRef}
               type="file" 
               multiple 
               accept="image/*" 

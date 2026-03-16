@@ -88,24 +88,21 @@ export default function ViewReports() {
       pdf.text('AFFECTED PLANT', 15, yPosition)
       yPosition += 7
 
-      const affectedPlantData = [
-        ['Customer', selectedReport.customer || '', 'Depot', selectedReport.depot || ''],
-        ['Project', selectedReport.project || '', '', ''],
-        ['Customer Ref', selectedReport.project || '', 'Vehicle #', selectedReport.unit || '']
-      ]
-
       pdf.setFontSize(9)
       pdf.setFont(undefined, 'normal')
       
-      affectedPlantData.forEach(row => {
-        pdf.text(row[0] + ':', 15, yPosition)
-        pdf.text(row[1], 45, yPosition)
-        if (row[2]) pdf.text(row[2] + ':', 120, yPosition)
-        if (row[3]) pdf.text(row[3], 140, yPosition)
-        yPosition += 6
-      })
+      pdf.text('Customer:', 15, yPosition)
+      pdf.text(selectedReport.customer || '', 45, yPosition)
+      pdf.text('Depot:', 120, yPosition)
+      pdf.text(selectedReport.depot || '', 140, yPosition)
+      yPosition += 6
 
-      yPosition += 3
+      pdf.text('Project:', 15, yPosition)
+      pdf.text(selectedReport.project || '', 45, yPosition)
+      pdf.text('Vehicle #:', 120, yPosition)
+      pdf.text(selectedReport.unit || '', 140, yPosition)
+      yPosition += 8
+
       pdf.setLineWidth(0.5)
       pdf.line(15, yPosition, pageWidth - 15, yPosition)
       yPosition += 5
@@ -125,7 +122,7 @@ export default function ViewReports() {
 
       pdf.text('SN:', 15, yPosition)
       pdf.text(selectedReport.converter_sn || '', 45, yPosition)
-      yPosition += 6
+      yPosition += 8
 
       pdf.setLineWidth(0.5)
       pdf.line(15, yPosition, pageWidth - 15, yPosition)
@@ -361,34 +358,46 @@ export default function ViewReports() {
 
     const printWindow = window.open('', '', 'height=800,width=1000')
     
+    const newlineChar = String.fromCharCode(10)
+    const brTag = '<br>'
+    const reworkPointsFormatted = (selectedReport.rework_points || '').split(newlineChar).join(brTag)
+    const defectFormatted = (selectedReport.detected_defect || '').split(newlineChar).join(brTag)
+    
     let html = '<html><head><title>Field Service Report</title><style>' +
       'body{font-family:Arial;margin:30px;line-height:1.4;font-size:10pt}' +
       'h2{color:#FF000F;font-size:14pt;margin:15px 0 10px 0}' +
+      'h3{color:#333;font-size:12pt;margin:15px 0 8px 0}' +
       'table{width:100%;border-collapse:collapse;margin:10px 0}' +
       'td{border:1px solid #ccc;padding:8px;text-align:left}' +
       'th{background:#f5f5f5;font-weight:bold;border:1px solid #ccc;padding:8px}' +
       '.section-title{font-weight:bold;background:#e8e8e8;padding:5px}' +
       '.label{font-weight:bold;width:150px}' +
-      'img{max-width:400px;margin:10px 0}' +
+      'img{max-width:400px;margin:10px 0;border:1px solid #ccc}' +
+      'p{margin:5px 0}' +
       '</style></head><body>' +
       '<h2>FIELD SERVICE REPORT</h2>' +
       '<p><b>Motion Business:</b> ' + (selectedReport.motion_business || '') + '</p>' +
       '<p><b>Ticket Nr:</b> ' + (selectedReport.ticket_number || '') + '</p>' +
       '<h3>AFFECTED PLANT</h3>' +
-      '<table><tr><td class="label">Customer</td><td>' + selectedReport.customer + '</td><td class="label">Depot</td><td>' + selectedReport.depot + '</td></tr>' +
-      '<tr><td class="label">Project</td><td>' + selectedReport.project + '</td><td class="label">Vehicle #</td><td>' + selectedReport.unit + '</td></tr></table>' +
+      '<p><b>Customer:</b> ' + selectedReport.customer + '</p>' +
+      '<p><b>Depot:</b> ' + selectedReport.depot + '</p>' +
+      '<p><b>Project:</b> ' + selectedReport.project + '</p>' +
+      '<p><b>Vehicle #:</b> ' + selectedReport.unit + '</p>' +
       '<h3>CONVERTER</h3>' +
       '<p><b>Type:</b> ' + (selectedReport.converter_type || '') + '</p>' +
       '<p><b>SN:</b> ' + (selectedReport.converter_sn || '') + '</p>' +
       '<h3>FAILURE DESCRIPTION</h3>' +
-      '<p><b>Detected Defect:</b><br>' + (selectedReport.detected_defect || '') + '</p>' +
+      '<p><b>Detected Defect:</b></p>' +
+      '<p>' + defectFormatted + '</p>' +
       '<p><b>Failure Classification:</b> ' + (selectedReport.failure_classification || '') + '</p>' +
+      '<h3>SERVICE TIMES</h3>' +
+      '<p><b>Start:</b> ' + (selectedReport.start_time || '') + ' | <b>End:</b> ' + (selectedReport.end_time || '') + '</p>' +
       '<h3>EXECUTED WORK</h3>' +
-      '<p>' + (selectedReport.rework_points || '').replace(/
-/g, '<br>') + '</p>' +
+      '<p>' + reworkPointsFormatted + '</p>' +
+      '<h3>FAULT CORRECTED</h3>' +
+      '<p>' + (selectedReport.fault_corrected || 'YES') + '</p>' +
       '<h3>SERVICE CONFIRMATION</h3>' +
       '<p><b>Repair Date:</b> ' + new Date(selectedReport.date).toLocaleString() + '</p>' +
-      '<p><b>Service Times:</b> ' + (selectedReport.start_time || '') + ' - ' + (selectedReport.end_time || '') + '</p>' +
       '<p><b>Repair Location:</b> ' + (selectedReport.repair_location || '') + '</p>' +
       '<h3>SIGNATURE</h3>' +
       '<p><b>Service Engineer:</b> ' + selectedReport.technician_name + '</p>' +

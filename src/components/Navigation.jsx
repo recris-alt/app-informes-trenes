@@ -1,13 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseClient'
 import './Navigation.css'
 
 export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, setIsLoggedIn }) {
   const [userEmail, setUserEmail] = useState('')
 
+  useEffect(() => {
+    // Obtener usuario actual
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUserEmail(session.user.email)
+        setIsLoggedIn(true)
+      } else {
+        setUserEmail('')
+        setIsLoggedIn(false)
+      }
+    }
+
+    getUser()
+
+    // Escuchar cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserEmail(session.user.email)
+        setIsLoggedIn(true)
+      } else {
+        setUserEmail('')
+        setIsLoggedIn(false)
+      }
+    })
+
+    return () => subscription?.unsubscribe()
+  }, [setIsLoggedIn])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setIsLoggedIn(false)
+    setUserEmail('')
     setCurrentPage('create')
   }
 
@@ -16,7 +46,9 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, se
       <div className="nav-container">
         <div className="nav-left">
           <h1 className="nav-title">Informes de Rework - Trenes</h1>
-          {isLoggedIn && <p className="nav-subtitle">Bienvenido, {userEmail}</p>}
+          {isLoggedIn && userEmail && (
+            <p className="nav-subtitle">Bienvenido, {userEmail}</p>
+          )}
         </div>
 
         <div className="nav-center">
@@ -39,9 +71,9 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, se
         </div>
 
         <div className="nav-right">
-          {isLoggedIn && (
+          {isLoggedIn && userEmail && (
             <button className="nav-logout-btn" onClick={handleLogout}>
-              Cerrar Sesión
+              ✕ Cerrar Sesión
             </button>
           )}
         </div>

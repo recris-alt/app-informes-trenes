@@ -1,9 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* NAVIGATION.CSS - TEMA CLARO Y OSCURO - CORREGIDO                             */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* MAIN NAVIGATION */
+/* NAVIGATION.CSS - ORIGINAL CON CONTRASTE ALTO                                 */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
 .navigation {
@@ -25,51 +21,36 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  gap: 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* LEFT SECTION - TITLE */
+/* LOGO */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-.nav-left {
+.nav-logo {
   flex: 1;
-  min-width: 0;
 }
 
-.nav-title {
+.nav-logo h1 {
   color: #ffffff;
   font-size: 24px;
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.nav-subtitle {
-  color: #ffffff;
-  font-size: 13px;
-  margin: 4px 0 0 0;
-  font-weight: 500;
-  opacity: 0.95;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* CENTER SECTION - NAVIGATION BUTTONS */
+/* MENU */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-.nav-center {
-  flex: 1;
+.nav-menu {
   display: flex;
+  gap: 15px;
+  flex: 1;
   justify-content: center;
 }
 
-.nav-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.nav-btn {
+.nav-link {
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
@@ -78,18 +59,18 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
-.nav-btn:hover {
+.nav-link:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
-.nav-btn.active {
+.nav-link.active {
   background: #ffffff;
   color: #FF000F;
   border-color: #ffffff;
@@ -97,14 +78,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* RIGHT SECTION - LOGOUT BUTTON */
+/* LOGOUT BUTTON */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-.nav-right {
-  flex: 0 0 auto;
-}
-
-.nav-logout-btn {
+.nav-logout {
   padding: 10px 24px;
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
@@ -113,25 +90,24 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  box-shadow: none;
 }
 
-.nav-logout-btn:hover {
+.nav-logout:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.nav-logout-btn:active {
+.nav-logout:active {
   transform: translateY(-1px);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* RESPONSIVE DESIGN */
+/* RESPONSIVE */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 1024px) {
@@ -140,16 +116,16 @@
     gap: 15px;
   }
 
-  .nav-title {
+  .nav-logo h1 {
     font-size: 20px;
   }
 
-  .nav-btn {
+  .nav-link {
     padding: 8px 16px;
     font-size: 13px;
   }
 
-  .nav-logout-btn {
+  .nav-logout {
     padding: 8px 16px;
     font-size: 12px;
   }
@@ -159,43 +135,28 @@
   .nav-container {
     flex-wrap: wrap;
     padding: 12px 16px;
-    gap: 12px;
   }
 
-  .nav-left {
+  .nav-logo {
     flex: 1 1 100%;
-    order: 1;
   }
 
-  .nav-center {
-    flex: 1 1 auto;
-    order: 2;
-  }
-
-  .nav-right {
-    flex: 0 0 auto;
-    order: 3;
-  }
-
-  .nav-title {
+  .nav-logo h1 {
     font-size: 18px;
   }
 
-  .nav-subtitle {
-    font-size: 12px;
-  }
-
-  .nav-buttons {
+  .nav-menu {
+    flex: 1 1 auto;
     gap: 8px;
   }
 
-  .nav-btn {
-    padding: 8px 14px;
+  .nav-link {
+    padding: 8px 12px;
     font-size: 12px;
   }
 
-  .nav-logout-btn {
-    padding: 8px 14px;
+  .nav-logout {
+    padding: 8px 12px;
     font-size: 11px;
   }
 }
@@ -203,47 +164,31 @@
 @media (max-width: 600px) {
   .nav-container {
     padding: 10px 12px;
-    gap: 10px;
   }
 
-  .nav-left {
+  .nav-logo {
     flex: 1 1 100%;
-    order: 1;
   }
 
-  .nav-center {
-    flex: 1 1 100%;
-    order: 3;
-  }
-
-  .nav-right {
-    flex: 1 1 100%;
-    order: 2;
-  }
-
-  .nav-title {
+  .nav-logo h1 {
     font-size: 16px;
   }
 
-  .nav-subtitle {
-    font-size: 11px;
-  }
-
-  .nav-buttons {
+  .nav-menu {
+    flex: 1 1 100%;
     gap: 6px;
-    width: 100%;
   }
 
-  .nav-btn {
+  .nav-link {
     flex: 1;
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 11px;
   }
 
-  .nav-logout-btn {
-    width: 100%;
+  .nav-logout {
+    flex: 0 0 auto;
     padding: 8px 12px;
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 
@@ -251,15 +196,8 @@
 /* ACCESSIBILITY */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-.nav-btn:focus-visible,
-.nav-logout-btn:focus-visible {
+.nav-link:focus-visible,
+.nav-logout:focus-visible {
   outline: 3px solid rgba(255, 255, 255, 0.8);
   outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav-btn,
-  .nav-logout-btn {
-    transition: none;
-  }
 }

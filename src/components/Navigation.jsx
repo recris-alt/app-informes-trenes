@@ -1,14 +1,8 @@
-import { useState } from 'react'
-import { supabase } from '../services/supabaseClient'
 import './Navigation.css'
 
-export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, setIsLoggedIn }) {
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setIsLoggedIn(false)
-    setCurrentPage('create')
-  }
-
+export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, currentUser, onLogout }) {
+  // FIX: Ya no llama a supabase.auth.signOut() (el login es custom, no Supabase Auth).
+  // FIX: Usa onLogout prop que viene de App.jsx y limpia localStorage correctamente.
   return (
     <nav className="navigation">
       <div className="nav-container">
@@ -19,13 +13,13 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, se
         {isLoggedIn && (
           <>
             <div className="nav-menu">
-              <button 
+              <button
                 className={`nav-link ${currentPage === 'create' ? 'active' : ''}`}
                 onClick={() => setCurrentPage('create')}
               >
                 ➕ Crear Informe
               </button>
-              <button 
+              <button
                 className={`nav-link ${currentPage === 'view' ? 'active' : ''}`}
                 onClick={() => setCurrentPage('view')}
               >
@@ -33,9 +27,14 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, se
               </button>
             </div>
 
-            <button className="nav-logout" onClick={handleLogout}>
-              Cerrar Sesión
-            </button>
+            <div className="nav-right">
+              {currentUser?.name && (
+                <span className="nav-username">👤 {currentUser.name}</span>
+              )}
+              <button className="nav-logout" onClick={onLogout}>
+                Cerrar Sesión
+              </button>
+            </div>
           </>
         )}
       </div>

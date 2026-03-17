@@ -1,69 +1,77 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../services/supabaseClient'
 import '../styles/CreateReport.css'
 
-export default function CreateReport() {
-  const [formData, setFormData] = useState({
-    technician_name: '',
-    date: new Date().toISOString().split('T')[0],
-    ticket_number: '',
-    motion_business: '',
-    customer: '',
-    depot: '',
-    project: '',
-    unit: '',
-    converter_type: '',
-    converter_sn: '',
-    first_message_date: '',
-    detected_defect: '',
-    failure_classification: '',
-    start_time: '',
-    end_time: '',
-    rework_points: '',
-    fault_corrected: 'yes',
-    replaced_materials: [],
-    repair_location: '',
-    conclusion: '',
-    photos: [],
-    signature: null
-  })
+const EMPTY_FORM = {
+  technician_name: '',
+  date: new Date().toISOString().split('T')[0],
+  ticket_number: '',
+  motion_business: '',
+  customer: '',
+  depot: '',
+  project: '',
+  unit: '',
+  converter_type: '',
+  converter_sn: '',
+  first_message_date: '',
+  detected_defect: '',
+  failure_classification: '',
+  start_time: '',
+  end_time: '',
+  rework_points: '',
+  fault_corrected: 'yes',
+  replaced_materials: [],
+  repair_location: '',
+  conclusion: '',
+  photos: [],
+  signature: null
+}
 
+export default function CreateReport() {
+  const [formData, setFormData] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [photoPreview, setPhotoPreview] = useState([])
   const [isDrawing, setIsDrawing] = useState(false)
-  
+
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
 
+  // FIX: Al cargar el draft, excluimos photos (no se pueden serializar objetos File)
   useEffect(() => {
     const savedDraft = localStorage.getItem('reportDraft')
     if (savedDraft) {
-      setFormData(JSON.parse(savedDraft))
+      try {
+        const draft = JSON.parse(savedDraft)
+        setFormData(prev => ({ ...prev, ...draft, photos: [], signature: null }))
+      } catch (e) {
+        localStorage.removeItem('reportDraft')
+      }
     }
   }, [])
 
+  // FIX: Guardamos el draft excluyendo photos y signature (no serializables)
   useEffect(() => {
-    localStorage.setItem('reportDraft', JSON.stringify(formData))
+    const { photos, signature, ...serializableData } = formData
+    localStorage.setItem('reportDraft', JSON.stringify(serializableData))
   }, [formData])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
     canvas.width = canvas.offsetWidth * 2
     canvas.height = 150 * 2
     canvas.style.width = canvas.offsetWidth + 'px'
     canvas.style.height = '150px'
-
     const context = canvas.getContext('2d')
     context.scale(2, 2)
     context.lineCap = 'round'
-    context.strokeStyle = '#000'
+    context.strokeStyle = '#1a1a1a'
     context.lineWidth = 2
     contextRef.current = context
   }, [])
 
+  // --- Mouse drawing ---
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent
     contextRef.current.beginPath()
@@ -79,35 +87,70 @@ export default function CreateReport() {
   }
 
   const stopDrawing = () => {
+    if (!isDrawing) return
     contextRef.current.closePath()
     setIsDrawing(false)
     const canvas = canvasRef.current
-    const signatureData = canvas.toDataURL('image/png')
-    setFormData(prev => ({ ...prev, signature: signatureData }))
+    setFormData(prev => ({ ...prev, signature: canvas.toDataURL('image/png') }))
+  }
+
+  // FIX: Touch events para firma en móvil/tablet
+  const getTouchPos = (canvas, touch) => {
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.offsetWidth / rect.width
+    const scaleY = (150) / rect.height
+    return {
+      x: (touch.clientX - rect.left) * scaleX,
+      y: (touch.clientY - rect.top) * scaleY
+    }
+  }
+
+  const startDrawingTouch = (e) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const pos = getTouchPos(canvasRef.current, touch)
+    contextRef.current.beginPath()
+    contextRef.current.moveTo(pos.x, pos.y)
+    setIsDrawing(true)
+  }
+
+  const drawTouch = (e) => {
+    e.preventDefault()
+    if (!isDrawing) return
+    const touch = e.touches[0]
+    const pos = getTouchPos(canvasRef.current, touch)
+    contextRef.current.lineTo(pos.x, pos.y)
+    contextRef.current.stroke()
+  }
+
+  const stopDrawingTouch = (e) => {
+    e.preventDefault()
+    contextRef.current.closePath()
+    setIsDrawing(false)
+    const canvas = canvasRef.current
+    setFormData(prev => ({ ...prev, signature: canvas.toDataURL('image/png') }))
   }
 
   const clearSignature = () => {
     const canvas = canvasRef.current
-    const context = contextRef.current
-    context.clearRect(0, 0, canvas.width, canvas.height)
+    contextRef.current.clearRect(0, 0, canvas.width, canvas.height)
     setFormData(prev => ({ ...prev, signature: null }))
   }
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  }, [])
 
   const addMaterial = () => {
-    const newMaterial = {
-      material_number_old: '',
-      serial_number_old: '',
-      material_number_new: '',
-      serial_number_new: ''
-    }
     setFormData(prev => ({
       ...prev,
-      replaced_materials: [...prev.replaced_materials, newMaterial]
+      replaced_materials: [...prev.replaced_materials, {
+        material_number_old: '',
+        serial_number_old: '',
+        material_number_new: '',
+        serial_number_new: ''
+      }]
     }))
   }
 
@@ -118,24 +161,17 @@ export default function CreateReport() {
     }))
   }
 
-  const handleMaterialChange = (index, field, value) => {
+  const handleMaterialChange = useCallback((index, field, value) => {
     setFormData(prev => {
       const updatedMaterials = [...prev.replaced_materials]
-      updatedMaterials[index] = {
-        ...updatedMaterials[index],
-        [field]: value
-      }
+      updatedMaterials[index] = { ...updatedMaterials[index], [field]: value }
       return { ...prev, replaced_materials: updatedMaterials }
     })
-  }
+  }, [])
 
   const handlePhotoCapture = (e) => {
     const files = Array.from(e.target.files)
-    setFormData(prev => ({
-      ...prev,
-      photos: [...prev.photos, ...files]
-    }))
-    
+    setFormData(prev => ({ ...prev, photos: [...prev.photos, ...files] }))
     files.forEach(file => {
       const reader = new FileReader()
       reader.onload = (event) => {
@@ -146,10 +182,7 @@ export default function CreateReport() {
   }
 
   const removePhoto = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
-    }))
+    setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }))
     setPhotoPreview(prev => prev.filter((_, i) => i !== index))
   }
 
@@ -160,29 +193,29 @@ export default function CreateReport() {
 
     try {
       let photoUrls = []
-      
+
       for (let i = 0; i < formData.photos.length; i++) {
         const file = formData.photos[i]
-        const fileName = Date.now() + '_' + i + '_' + file.name
-        
-        const { data, error } = await supabase.storage
+        const fileName = `${Date.now()}_${i}_${file.name}`
+
+        const { error } = await supabase.storage
           .from('report-photos')
           .upload(fileName, file)
 
         if (error) throw error
-        
+
         const { data: publicData } = supabase.storage
           .from('report-photos')
           .getPublicUrl(fileName)
-        
+
         photoUrls.push(publicData.publicUrl)
       }
 
       let signatureUrl = null
       if (formData.signature) {
         const signatureBlob = await fetch(formData.signature).then(r => r.blob())
-        const signatureFileName = 'signature_' + Date.now() + '.png'
-        
+        const signatureFileName = `signature_${Date.now()}.png`
+
         const { error: signatureError } = await supabase.storage
           .from('report-photos')
           .upload(signatureFileName, signatureBlob)
@@ -192,7 +225,7 @@ export default function CreateReport() {
         const { data: signaturePublicData } = supabase.storage
           .from('report-photos')
           .getPublicUrl(signatureFileName)
-        
+
         signatureUrl = signaturePublicData.publicUrl
       }
 
@@ -209,7 +242,7 @@ export default function CreateReport() {
           unit: formData.unit,
           converter_type: formData.converter_type,
           converter_sn: formData.converter_sn,
-          first_message_date: formData.first_message_date,
+          first_message_date: formData.first_message_date || null,
           detected_defect: formData.detected_defect,
           failure_classification: formData.failure_classification,
           start_time: formData.start_time,
@@ -226,39 +259,15 @@ export default function CreateReport() {
 
       if (error) throw error
 
-      setMessage('Report saved successfully')
-      
-      setFormData({
-        technician_name: '',
-        date: new Date().toISOString().split('T')[0],
-        ticket_number: '',
-        motion_business: '',
-        customer: '',
-        depot: '',
-        project: '',
-        unit: '',
-        converter_type: '',
-        converter_sn: '',
-        first_message_date: '',
-        detected_defect: '',
-        failure_classification: '',
-        start_time: '',
-        end_time: '',
-        rework_points: '',
-        fault_corrected: 'yes',
-        replaced_materials: [],
-        repair_location: '',
-        conclusion: '',
-        photos: [],
-        signature: null
-      })
+      setMessage('✅ Report saved successfully')
+      setFormData(EMPTY_FORM)
       setPhotoPreview([])
       clearSignature()
       localStorage.removeItem('reportDraft')
 
-      setTimeout(() => setMessage(''), 3000)
+      setTimeout(() => setMessage(''), 4000)
     } catch (error) {
-      setMessage('Error: ' + error.message)
+      setMessage('❌ Error: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -271,7 +280,6 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Header Information</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>Ticket Number</label>
@@ -282,11 +290,20 @@ export default function CreateReport() {
               <input type="text" name="motion_business" value={formData.motion_business} onChange={handleInputChange} placeholder="e.g., MOTR India" />
             </div>
           </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Technician Name *</label>
+              <input type="text" name="technician_name" value={formData.technician_name} onChange={handleInputChange} required placeholder="Your name" />
+            </div>
+            <div className="form-group">
+              <label>Date *</label>
+              <input type="date" name="date" value={formData.date} onChange={handleInputChange} required />
+            </div>
+          </div>
         </div>
 
         <div className="form-section">
           <h3>Affected Plant</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>Customer *</label>
@@ -297,7 +314,6 @@ export default function CreateReport() {
               <input type="text" name="depot" value={formData.depot} onChange={handleInputChange} required placeholder="Depot" />
             </div>
           </div>
-
           <div className="form-row">
             <div className="form-group">
               <label>Project *</label>
@@ -312,15 +328,11 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Converter Information</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>Converter Type *</label>
               <input type="text" name="converter_type" value={formData.converter_type} onChange={handleInputChange} required placeholder="e.g., CC1500_MS_25-3KV..." />
             </div>
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>Serial Number (SN)</label>
               <input type="text" name="converter_sn" value={formData.converter_sn} onChange={handleInputChange} placeholder="SN" />
@@ -330,30 +342,24 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Failure Description</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>First Message Date</label>
               <input type="datetime-local" name="first_message_date" value={formData.first_message_date} onChange={handleInputChange} />
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Detected Defect/Error Caused by *</label>
-            <textarea name="detected_defect" value={formData.detected_defect} onChange={handleInputChange} required placeholder="Describe the defect..." rows="4" />
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>Failure Classification</label>
               <input type="text" name="failure_classification" value={formData.failure_classification} onChange={handleInputChange} placeholder="e.g., Power Supply" />
             </div>
           </div>
+          <div className="form-group">
+            <label>Detected Defect / Error Caused by *</label>
+            <textarea name="detected_defect" value={formData.detected_defect} onChange={handleInputChange} required placeholder="Describe the defect..." rows="4" />
+          </div>
         </div>
 
         <div className="form-section">
           <h3>Service Times</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>Start Time</label>
@@ -368,12 +374,10 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Executed Work</h3>
-          
           <div className="form-group">
             <label>Detailed Work Points *</label>
             <textarea name="rework_points" value={formData.rework_points} onChange={handleInputChange} required placeholder="Detailed list of work points..." rows="6" />
           </div>
-
           <div className="form-row">
             <div className="form-group">
               <label>Fault Corrected?</label>
@@ -387,7 +391,6 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Replaced Material</h3>
-          
           {formData.replaced_materials.length === 0 ? (
             <p className="no-materials">No materials added yet</p>
           ) : (
@@ -395,76 +398,40 @@ export default function CreateReport() {
               <div key={index} className="form-section-sub">
                 <div className="material-header">
                   <h4>Material {index + 1}</h4>
-                  <button 
-                    type="button" 
-                    onClick={() => removeMaterial(index)}
-                    className="remove-material-btn"
-                  >
-                    Remove
-                  </button>
+                  <button type="button" onClick={() => removeMaterial(index)} className="remove-material-btn">Remove</button>
                 </div>
-
                 <div className="material-group">
                   <div className="material-column">
                     <h5>Old Material</h5>
                     <div className="form-group">
                       <label>Material Number</label>
-                      <input
-                        type="text"
-                        value={material.material_number_old}
-                        onChange={(e) => handleMaterialChange(index, 'material_number_old', e.target.value)}
-                        placeholder="e.g., 3BHE0573918R002"
-                      />
+                      <input type="text" value={material.material_number_old} onChange={(e) => handleMaterialChange(index, 'material_number_old', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
                     </div>
                     <div className="form-group">
                       <label>Serial Number</label>
-                      <input
-                        type="text"
-                        value={material.serial_number_old}
-                        onChange={(e) => handleMaterialChange(index, 'serial_number_old', e.target.value)}
-                        placeholder="e.g., 106"
-                      />
+                      <input type="text" value={material.serial_number_old} onChange={(e) => handleMaterialChange(index, 'serial_number_old', e.target.value)} placeholder="e.g., 106" />
                     </div>
                   </div>
-
                   <div className="material-column">
                     <h5>New Material</h5>
                     <div className="form-group">
                       <label>Material Number</label>
-                      <input
-                        type="text"
-                        value={material.material_number_new}
-                        onChange={(e) => handleMaterialChange(index, 'material_number_new', e.target.value)}
-                        placeholder="e.g., 3BHE0573918R002"
-                      />
+                      <input type="text" value={material.material_number_new} onChange={(e) => handleMaterialChange(index, 'material_number_new', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
                     </div>
                     <div className="form-group">
                       <label>Serial Number</label>
-                      <input
-                        type="text"
-                        value={material.serial_number_new}
-                        onChange={(e) => handleMaterialChange(index, 'serial_number_new', e.target.value)}
-                        placeholder="e.g., 58"
-                      />
+                      <input type="text" value={material.serial_number_new} onChange={(e) => handleMaterialChange(index, 'serial_number_new', e.target.value)} placeholder="e.g., 58" />
                     </div>
                   </div>
                 </div>
               </div>
             ))
           )}
-
-          <button 
-            type="button" 
-            onClick={addMaterial}
-            className="add-material-btn"
-          >
-            + Add Material
-          </button>
+          <button type="button" onClick={addMaterial} className="add-material-btn">+ Add Material</button>
         </div>
 
         <div className="form-section">
           <h3>Service Confirmation</h3>
-          
           <div className="form-row">
             <div className="form-group">
               <label>Repair Location</label>
@@ -474,12 +441,7 @@ export default function CreateReport() {
 
           <div className="form-group">
             <label>Pictures</label>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              onChange={handlePhotoCapture} 
-            />
+            <input type="file" multiple accept="image/*" onChange={handlePhotoCapture} />
             <small>Upload pictures from camera, gallery or files</small>
           </div>
 
@@ -489,7 +451,7 @@ export default function CreateReport() {
               <div className="preview-grid">
                 {photoPreview.map((photo, index) => (
                   <div key={index} className="preview-item">
-                    <img src={photo} alt={'Preview ' + index} />
+                    <img src={photo} alt={`Preview ${index}`} />
                     <button type="button" onClick={() => removePhoto(index)} className="remove-btn">✕</button>
                   </div>
                 ))}
@@ -500,7 +462,19 @@ export default function CreateReport() {
           <div className="form-group">
             <label>Service Engineer Signature *</label>
             <div className="signature-container">
-              <canvas ref={canvasRef} className="signature-canvas" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} />
+              <canvas
+                ref={canvasRef}
+                className="signature-canvas"
+                // Mouse events
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                // FIX: Touch events para móvil/tablet
+                onTouchStart={startDrawingTouch}
+                onTouchMove={drawTouch}
+                onTouchEnd={stopDrawingTouch}
+              />
               <div className="signature-buttons">
                 <button type="button" onClick={clearSignature} className="clear-signature-btn">Clear Signature</button>
               </div>
@@ -511,14 +485,13 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Conclusion</h3>
-          
           <div className="form-group">
             <label>Conclusion / Additional Notes</label>
             <textarea name="conclusion" value={formData.conclusion} onChange={handleInputChange} placeholder="Final notes..." rows="3" />
           </div>
         </div>
 
-        {message && <div className="message">{message}</div>}
+        {message && <div className={`message ${message.startsWith('❌') ? 'message-error' : 'message-success'}`}>{message}</div>}
 
         <button type="submit" disabled={loading} className="submit-btn">
           {loading ? 'Saving Report...' : 'Save Field Service Report'}

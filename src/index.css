@@ -1,3 +1,9 @@
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* INDEX.CSS - Base global styles                                                */
+/* FIX: Eliminados los estilos de .navigation, .nav-button, .header             */
+/*      que duplicaban y conflictuaban con Navigation.css                       */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
 * {
   margin: 0;
   padding: 0;
@@ -10,7 +16,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f0f2f5;
   min-height: 100vh;
 }
 
@@ -20,109 +26,24 @@ body {
   flex-direction: column;
 }
 
-.header {
-  background: linear-gradient(135deg, #FF000F 0%, #DC143C 50%, #8B0000 100%);
-  color: white;
-  padding: 25px 20px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(255, 0, 15, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: shine 3s infinite;
-}
-
-@keyframes shine {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-30%, -30%) scale(1.1); }
-}
-
-.header .logo {
-  height: 50px;
-  margin-bottom: 12px;
-  background: white;
-  padding: 8px 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  position: relative;
-  z-index: 1;
-}
-
-.header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0.5px;
-}
-
-.navigation {
-  display: flex;
-  gap: 15px;
-  padding: 20px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  flex-wrap: wrap;
-}
-
-.nav-button {
-  flex: 1;
-  padding: 14px 24px;
-  border: 2px solid #ddd;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  cursor: pointer;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 160px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.nav-button:hover {
-  border-color: #FF000F;
-  color: #FF000F;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 0, 15, 0.2);
-}
-
-.nav-button.active {
-  background: linear-gradient(135deg, #FF000F 0%, #DC143C 100%);
-  color: white;
-  border-color: #FF000F;
-  box-shadow: 0 4px 12px rgba(255, 0, 15, 0.3);
-}
-
+/* Main content sits below the fixed nav (64px height) */
 .main-content {
   flex: 1;
-  padding: 25px;
-  max-width: 1000px;
+  padding: 84px 25px 40px 25px; /* 64px nav + 20px gap */
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
 }
 
-@media (max-width: 600px) {
-  .header h1 {
-    font-size: 20px;
-  }
-
-  .nav-button {
-    min-width: 120px;
-    padding: 12px 18px;
-    font-size: 13px;
-  }
-
+@media (max-width: 768px) {
+  /* On mobile nav wraps to ~100px tall */
   .main-content {
-    padding: 15px;
+    padding: 115px 16px 30px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    padding: 120px 12px 20px 12px;
   }
 }

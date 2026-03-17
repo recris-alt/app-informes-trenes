@@ -42,21 +42,15 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1>Informes de Rework - Trenes</h1>
-          </div>
-          <div className="header-right">
-            <span className="user-info">Bienvenido, {currentUser?.name}</span>
-            <button onClick={handleLogout} className="logout-btn">
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      {/* FIX: Se eliminó el <header> duplicado que coexistía con Navigation */}
+      <Navigation
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+      />
 
       <main className="main-content">
         {currentPage === 'create' && <CreateReport />}

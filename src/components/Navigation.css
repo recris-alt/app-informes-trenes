@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* NAVIGATION.CSS - ORIGINAL CON CONTRASTE ALTO                                 */
+/* NAVIGATION.CSS                                                                */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
 .navigation {
@@ -8,8 +8,8 @@
   left: 0;
   right: 0;
   z-index: 999;
-  background: linear-gradient(135deg, #FF000F 0%, #DC143C 100%);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #CC0000 0%, #FF000F 50%, #CC0000 100%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   padding: 0;
 }
 
@@ -17,10 +17,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
+  padding: 0 30px;
+  height: 64px;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  gap: 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
@@ -28,15 +30,17 @@
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
 .nav-logo {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 .nav-logo h1 {
   color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   margin: 0;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
@@ -45,65 +49,80 @@
 
 .nav-menu {
   display: flex;
-  gap: 15px;
+  gap: 8px;
   flex: 1;
   justify-content: center;
 }
 
 .nav-link {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  border: 2px solid transparent;
+  border: 1.5px solid rgba(255,255,255,0.3);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255,255,255,0.6);
+  transform: translateY(-1px);
 }
 
 .nav-link.active {
   background: #ffffff;
-  color: #FF000F;
+  color: #CC0000;
   border-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
-/* LOGOUT BUTTON */
+/* RIGHT SIDE: USERNAME + LOGOUT */
 /* ═══════════════════════════════════════════════════════════════════════════════ */
 
-.nav-logout {
-  padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  border: 2px solid #ffffff;
-  border-radius: 6px;
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.nav-username {
+  color: rgba(255,255,255,0.85);
   font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav-logout {
+  padding: 8px 18px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
 .nav-logout:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  border-color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .nav-logout:active {
-  transform: translateY(-1px);
+  transform: translateY(0);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */
@@ -112,62 +131,30 @@
 
 @media (max-width: 1024px) {
   .nav-container {
-    padding: 12px 20px;
-    gap: 15px;
+    padding: 0 20px;
+    gap: 12px;
   }
 
   .nav-logo h1 {
-    font-size: 20px;
+    font-size: 17px;
   }
 
   .nav-link {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-
-  .nav-logout {
-    padding: 8px 16px;
+    padding: 7px 14px;
     font-size: 12px;
   }
 }
 
 @media (max-width: 768px) {
   .nav-container {
+    height: auto;
     flex-wrap: wrap;
-    padding: 12px 16px;
-  }
-
-  .nav-logo {
-    flex: 1 1 100%;
-  }
-
-  .nav-logo h1 {
-    font-size: 18px;
-  }
-
-  .nav-menu {
-    flex: 1 1 auto;
+    padding: 10px 16px;
     gap: 8px;
   }
 
-  .nav-link {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .nav-logout {
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 600px) {
-  .nav-container {
-    padding: 10px 12px;
-  }
-
   .nav-logo {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
   }
 
   .nav-logo h1 {
@@ -176,18 +163,40 @@
 
   .nav-menu {
     flex: 1 1 100%;
+    order: 3;
+    justify-content: flex-start;
     gap: 6px;
   }
 
+  .nav-right {
+    flex: 0 0 auto;
+    order: 2;
+  }
+
+  .nav-username {
+    display: none;
+  }
+
   .nav-link {
-    flex: 1;
-    padding: 8px 10px;
+    padding: 7px 12px;
     font-size: 11px;
   }
 
   .nav-logout {
-    flex: 0 0 auto;
-    padding: 8px 12px;
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-menu {
+    gap: 5px;
+  }
+
+  .nav-link {
+    flex: 1;
+    text-align: center;
+    padding: 8px 8px;
     font-size: 10px;
   }
 }

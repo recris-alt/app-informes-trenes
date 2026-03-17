@@ -21,14 +21,13 @@ export default function Login({ onLoginSuccess }) {
         return
       }
 
-      console.log('Buscando código:', code)
-
+      // FIX: Filtramos directamente en Supabase por access_code en lugar de
+      // descargar TODA la tabla de usuarios al cliente. Más seguro y eficiente.
       const { data, error: fetchError } = await supabase
         .from('users')
         .select('id, name, access_code')
-
-      console.log('Datos de usuarios:', data)
-      console.log('Error:', fetchError)
+        .eq('access_code', code)
+        .maybeSingle()
 
       if (fetchError) {
         setError('Error al conectar con la base de datos')
@@ -36,23 +35,21 @@ export default function Login({ onLoginSuccess }) {
         return
       }
 
-      const user = data.find(u => u.access_code.trim().toUpperCase() === code)
-
-      if (!user) {
+      if (!data) {
         setError('Código de acceso incorrecto')
         setLoading(false)
         return
       }
 
       localStorage.setItem('userSession', JSON.stringify({
-        id: user.id,
-        name: user.name,
-        accessCode: user.access_code,
+        id: data.id,
+        name: data.name,
+        accessCode: data.access_code,
         loginTime: new Date().toISOString()
       }))
 
       setAccessCode('')
-      onLoginSuccess(user)
+      onLoginSuccess(data)
     } catch (err) {
       console.error('Error:', err)
       setError('Error: ' + err.message)
@@ -65,8 +62,9 @@ export default function Login({ onLoginSuccess }) {
     <div className="login-container">
       <div className="login-box">
         <div className="login-header">
+          <div className="login-logo">ABB</div>
           <h1>Informe de Rework</h1>
-          <p>Sistema de Reportes ABB</p>
+          <p>Sistema de Reportes · Motion Business</p>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
@@ -79,6 +77,7 @@ export default function Login({ onLoginSuccess }) {
               placeholder="Ingresa tu código"
               disabled={loading}
               autoFocus
+              autoComplete="current-password"
             />
           </div>
 
@@ -90,7 +89,7 @@ export default function Login({ onLoginSuccess }) {
         </form>
 
         <div className="login-footer">
-          <p>© 2024 ABB - Sistemas de Rework</p>
+          <p>© {new Date().getFullYear()} ABB · Sistemas de Rework</p>
         </div>
       </div>
     </div>

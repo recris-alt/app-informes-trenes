@@ -63,7 +63,8 @@
 }
 
 .form-section h3 {
-  color: var(--color-text);
+  color: #333333;
+  color-scheme: light;
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 20px;
@@ -93,7 +94,8 @@
 
 .form-group label {
   font-weight: 600;
-  color: var(--color-text);
+  color: #333333;
+  color-scheme: light;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -114,8 +116,9 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: white;
-  color: var(--color-text);
+  background-color: #ffffff;
+  color: #333333;
+  color-scheme: light;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -226,7 +229,8 @@
 }
 
 .material-column h5 {
-  color: var(--color-text);
+  color: #333333;
+  color-scheme: light;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 15px;
@@ -351,7 +355,8 @@
 .photo-preview p {
   margin-bottom: 15px;
   font-weight: 700;
-  color: var(--color-text);
+  color: #333333;
+  color-scheme: light;
   font-size: 14px;
 }
 

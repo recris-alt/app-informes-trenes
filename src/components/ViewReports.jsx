@@ -20,7 +20,7 @@ const loadImageAsBase64 = (url) => {
   })
 }
 
-export default function ViewReports() {
+export default function ViewReports({ preselectedReport, onClearPreselected }) {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedReport, setSelectedReport] = useState(null)
@@ -29,6 +29,14 @@ export default function ViewReports() {
   useEffect(() => {
     fetchReports()
   }, [])
+
+  // Cuando se llega desde la tabla con un informe preseleccionado, abrirlo automáticamente
+  useEffect(() => {
+    if (preselectedReport) {
+      setSelectedReport(preselectedReport)
+      if (onClearPreselected) onClearPreselected()
+    }
+  }, [preselectedReport])
 
   const fetchReports = async () => {
     try {

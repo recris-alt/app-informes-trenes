@@ -734,8 +734,9 @@
   .create-report {
     background: #1e1e1e;
     color: #f0f0f0;
+  }
 
-/* Labels y textos */
+  /* Labels y textos */
   .form-group label {
     color: #e0e0e0;
   }

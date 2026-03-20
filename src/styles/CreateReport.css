@@ -734,6 +734,57 @@
   .create-report {
     background: #1e1e1e;
     color: #f0f0f0;
+
+/* Labels y textos */
+  .form-group label {
+    color: #e0e0e0;
+  }
+
+  .form-group small {
+    color: #999;
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: #666;
+  }
+
+  /* Títulos de sección */
+  .form-section h3 {
+    color: #f0f0f0;
+  }
+
+  /* Subtítulos de material */
+  .material-header h4 {
+    color: var(--abb-red);
+  }
+
+  .material-column h5 {
+    color: var(--abb-lilac-light);
+  }
+
+  /* Textos de foto preview */
+  .photo-preview p {
+    color: #e0e0e0;
+  }
+
+  /* No-materials */
+  .no-materials {
+    color: #999;
+    background: #2a2a2a;
+  }
+
+  /* Mensaje de éxito/error */
+  .message {
+    background: linear-gradient(135deg, #1a3320 0%, #1e3d24 100%);
+    color: #81c784;
+    border-color: #4caf50;
+  }
+
+  /* select: el dropdown nativo en dark mode también necesita ayuda */
+  .form-group select option {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
   }
 
   .form-group input,

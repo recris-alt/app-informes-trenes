@@ -31,6 +31,7 @@
 
 .create-report {
   background: white;
+  color-scheme: light;
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -796,15 +797,17 @@
   .form-group input,
   .form-group textarea,
   .form-group select {
-    background-color: #2a2a2a;
-    color: #f0f0f0;
+    background-color: #ffffff;
+    color: #333333;
     border-color: #404040;
+    color-scheme: light;
   }
 
   .form-group input:focus,
   .form-group textarea:focus,
   .form-group select:focus {
-    background-color: rgba(255, 0, 15, 0.1);
+    background-color: #ffffff;
+    color: #333333;
     border-color: var(--abb-red);
   }
 

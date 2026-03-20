@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* REPORTSTABLE.CSS                                                              */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.reports-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* HEADER & SEARCH */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.table-header {
+  padding: 24px 28px 20px 28px;
+  border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-title h2 {
+  color: #FF000F;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.table-count {
+  background: #f0f0f0;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 11px 40px 11px 42px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: #333;
+  color-scheme: light;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #FF000F;
+  box-shadow: 0 0 0 4px rgba(255, 0, 15, 0.08);
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.clear-search:hover {
+  color: #FF000F;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* TABLE */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.reports-table thead tr {
+  background: linear-gradient(135deg, #CC0000 0%, #FF000F 100%);
+}
+
+.reports-table thead th {
+  padding: 14px 16px;
+  text-align: left;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.reports-table thead th:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sort-icon {
+  margin-left: 5px;
+  font-size: 11px;
+}
+
+.sort-icon.inactive {
+  opacity: 0.4;
+}
+
+.sort-icon.active {
+  opacity: 1;
+}
+
+.reports-table tbody tr.table-row {
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s ease;
+}
+
+.reports-table tbody tr.table-row:hover {
+  background: rgba(255, 0, 15, 0.04);
+}
+
+.reports-table tbody tr.table-row:last-child {
+  border-bottom: none;
+}
+
+.reports-table tbody td {
+  padding: 13px 16px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.cell-ticket {
+  font-weight: 700;
+  color: #FF000F !important;
+}
+
+.cell-converter {
+  font-size: 13px;
+  color: #555 !important;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* BADGE */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-yes {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.badge-no {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* EMPTY / LOADING */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.table-loading,
+.table-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: #999;
+  font-size: 15px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* RESPONSIVE */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .table-header {
+    padding: 18px 16px 16px 16px;
+  }
+
+  .table-title h2 {
+    font-size: 18px;
+  }
+
+  .reports-table thead th {
+    padding: 12px 12px;
+    font-size: 11px;
+  }
+
+  .reports-table tbody td {
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+
+  .cell-converter {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 600px) {
+  .table-header {
+    padding: 14px 12px 12px 12px;
+  }
+
+  .search-input {
+    font-size: 13px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* DARK MODE */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  .reports-table-container {
+    background: #1e1e1e;
+  }
+
+  .table-header {
+    border-bottom-color: #333;
+  }
+
+  .table-count {
+    background: #2a2a2a;
+    color: #aaa;
+  }
+
+  .search-input {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border-color: #404040;
+  }
+
+  .search-input::placeholder {
+    color: #666;
+  }
+
+  .reports-table tbody tr.table-row {
+    border-bottom-color: #2a2a2a;
+  }
+
+  .reports-table tbody tr.table-row:hover {
+    background: rgba(255, 0, 15, 0.08);
+  }
+
+  .reports-table tbody td {
+    color: #e0e0e0;
+  }
+
+  .cell-converter {
+    color: #bbb !important;
+  }
+
+  .badge-yes {
+    background: #1a3320;
+    color: #81c784;
+    border-color: #2e7d32;
+  }
+
+  .badge-no {
+    background: #3b1a1a;
+    color: #ef9a9a;
+    border-color: #c62828;
+  }
+
+  .table-loading,
+  .table-empty {
+    color: #666;
+  }
+}

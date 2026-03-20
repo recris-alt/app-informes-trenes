@@ -1,8 +1,6 @@
 import './Navigation.css'
 
 export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, currentUser, onLogout }) {
-  // FIX: Ya no llama a supabase.auth.signOut() (el login es custom, no Supabase Auth).
-  // FIX: Usa onLogout prop que viene de App.jsx y limpia localStorage correctamente.
   return (
     <nav className="navigation">
       <div className="nav-container">
@@ -24,6 +22,12 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, cu
                 onClick={() => setCurrentPage('view')}
               >
                 📋 Ver Informes
+              </button>
+              <button
+                className={`nav-link ${currentPage === 'table' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('table')}
+              >
+                📊 Tabla
               </button>
             </div>
 

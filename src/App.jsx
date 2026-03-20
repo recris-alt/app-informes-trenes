@@ -3,12 +3,14 @@ import Login from './components/Login'
 import Navigation from './components/Navigation'
 import CreateReport from './components/CreateReport'
 import ViewReports from './components/ViewReports'
+import ReportsTable from './components/ReportsTable'
 import './App.css'
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('create')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const [selectedReport, setSelectedReport] = useState(null)
 
   useEffect(() => {
     const savedSession = localStorage.getItem('userSession')
@@ -18,7 +20,6 @@ export default function App() {
         setCurrentUser(user)
         setIsLoggedIn(true)
       } catch (err) {
-        console.log('Sesión inválida')
         localStorage.removeItem('userSession')
       }
     }
@@ -36,13 +37,18 @@ export default function App() {
     setCurrentPage('create')
   }
 
+  // Cuando se selecciona un informe desde la tabla, ir a la vista de detalle
+  const handleSelectReport = (report) => {
+    setSelectedReport(report)
+    setCurrentPage('view')
+  }
+
   if (!isLoggedIn) {
     return <Login onLoginSuccess={handleLoginSuccess} />
   }
 
   return (
     <div className="app-container">
-      {/* FIX: Se eliminó el <header> duplicado que coexistía con Navigation */}
       <Navigation
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
@@ -54,7 +60,8 @@ export default function App() {
 
       <main className="main-content">
         {currentPage === 'create' && <CreateReport />}
-        {currentPage === 'view' && <ViewReports />}
+        {currentPage === 'view' && <ViewReports preselectedReport={selectedReport} onClearPreselected={() => setSelectedReport(null)} />}
+        {currentPage === 'table' && <ReportsTable onSelectReport={handleSelectReport} />}
       </main>
     </div>
   )

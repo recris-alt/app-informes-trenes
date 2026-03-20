@@ -27,6 +27,8 @@ const EMPTY_FORM = {
   signature: null
 }
 
+
+const INPUT_STYLE = { backgroundColor: '#ffffff', color: '#333333', colorScheme: 'light' }
 export default function CreateReport() {
   const [formData, setFormData] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
@@ -283,21 +285,21 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>Ticket Number</label>
-              <input type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} placeholder="Ticket Nr" />
+              <input style={INPUT_STYLE} type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} placeholder="Ticket Nr" />
             </div>
             <div className="form-group">
               <label>Motion Business</label>
-              <input type="text" name="motion_business" value={formData.motion_business} onChange={handleInputChange} placeholder="e.g., MOTR India" />
+              <input style={INPUT_STYLE} type="text" name="motion_business" value={formData.motion_business} onChange={handleInputChange} placeholder="e.g., MOTR India" />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Technician Name *</label>
-              <input type="text" name="technician_name" value={formData.technician_name} onChange={handleInputChange} required placeholder="Your name" />
+              <input style={INPUT_STYLE} type="text" name="technician_name" value={formData.technician_name} onChange={handleInputChange} required placeholder="Your name" />
             </div>
             <div className="form-group">
               <label>Date *</label>
-              <input type="date" name="date" value={formData.date} onChange={handleInputChange} required />
+              <input style={INPUT_STYLE} type="date" name="date" value={formData.date} onChange={handleInputChange} required />
             </div>
           </div>
         </div>
@@ -307,21 +309,21 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>Customer *</label>
-              <input type="text" name="customer" value={formData.customer} onChange={handleInputChange} required placeholder="Customer name" />
+              <input style={INPUT_STYLE} type="text" name="customer" value={formData.customer} onChange={handleInputChange} required placeholder="Customer name" />
             </div>
             <div className="form-group">
               <label>Depot *</label>
-              <input type="text" name="depot" value={formData.depot} onChange={handleInputChange} required placeholder="Depot" />
+              <input style={INPUT_STYLE} type="text" name="depot" value={formData.depot} onChange={handleInputChange} required placeholder="Depot" />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Project *</label>
-              <input type="text" name="project" value={formData.project} onChange={handleInputChange} required placeholder="Project" />
+              <input style={INPUT_STYLE} type="text" name="project" value={formData.project} onChange={handleInputChange} required placeholder="Project" />
             </div>
             <div className="form-group">
               <label>Vehicle Number *</label>
-              <input type="text" name="unit" value={formData.unit} onChange={handleInputChange} required placeholder="Vehicle number" />
+              <input style={INPUT_STYLE} type="text" name="unit" value={formData.unit} onChange={handleInputChange} required placeholder="Vehicle number" />
             </div>
           </div>
         </div>
@@ -331,11 +333,11 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>Converter Type *</label>
-              <input type="text" name="converter_type" value={formData.converter_type} onChange={handleInputChange} required placeholder="e.g., CC1500_MS_25-3KV..." />
+              <input style={INPUT_STYLE} type="text" name="converter_type" value={formData.converter_type} onChange={handleInputChange} required placeholder="e.g., CC1500_MS_25-3KV..." />
             </div>
             <div className="form-group">
               <label>Serial Number (SN)</label>
-              <input type="text" name="converter_sn" value={formData.converter_sn} onChange={handleInputChange} placeholder="SN" />
+              <input style={INPUT_STYLE} type="text" name="converter_sn" value={formData.converter_sn} onChange={handleInputChange} placeholder="SN" />
             </div>
           </div>
         </div>
@@ -345,16 +347,16 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>First Message Date</label>
-              <input type="datetime-local" name="first_message_date" value={formData.first_message_date} onChange={handleInputChange} />
+              <input style={INPUT_STYLE} type="datetime-local" name="first_message_date" value={formData.first_message_date} onChange={handleInputChange} />
             </div>
             <div className="form-group">
               <label>Failure Classification</label>
-              <input type="text" name="failure_classification" value={formData.failure_classification} onChange={handleInputChange} placeholder="e.g., Power Supply" />
+              <input style={INPUT_STYLE} type="text" name="failure_classification" value={formData.failure_classification} onChange={handleInputChange} placeholder="e.g., Power Supply" />
             </div>
           </div>
           <div className="form-group">
             <label>Detected Defect / Error Caused by *</label>
-            <textarea name="detected_defect" value={formData.detected_defect} onChange={handleInputChange} required placeholder="Describe the defect..." rows="4" />
+            <textarea style={INPUT_STYLE} name="detected_defect" value={formData.detected_defect} onChange={handleInputChange} required placeholder="Describe the defect..." rows="4" />
           </div>
         </div>
 
@@ -363,11 +365,11 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>Start Time</label>
-              <input type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} />
+              <input style={INPUT_STYLE} type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} />
             </div>
             <div className="form-group">
               <label>End Time</label>
-              <input type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} />
+              <input style={INPUT_STYLE} type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} />
             </div>
           </div>
         </div>
@@ -376,12 +378,12 @@ export default function CreateReport() {
           <h3>Executed Work</h3>
           <div className="form-group">
             <label>Detailed Work Points *</label>
-            <textarea name="rework_points" value={formData.rework_points} onChange={handleInputChange} required placeholder="Detailed list of work points..." rows="6" />
+            <textarea style={INPUT_STYLE} name="rework_points" value={formData.rework_points} onChange={handleInputChange} required placeholder="Detailed list of work points..." rows="6" />
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Fault Corrected?</label>
-              <select name="fault_corrected" value={formData.fault_corrected} onChange={handleInputChange}>
+              <select style={INPUT_STYLE} name="fault_corrected" value={formData.fault_corrected} onChange={handleInputChange}>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
               </select>
@@ -405,22 +407,22 @@ export default function CreateReport() {
                     <h5>Old Material</h5>
                     <div className="form-group">
                       <label>Material Number</label>
-                      <input type="text" value={material.material_number_old} onChange={(e) => handleMaterialChange(index, 'material_number_old', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
+                      <input style={INPUT_STYLE} type="text" value={material.material_number_old} onChange={(e) => handleMaterialChange(index, 'material_number_old', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
                     </div>
                     <div className="form-group">
                       <label>Serial Number</label>
-                      <input type="text" value={material.serial_number_old} onChange={(e) => handleMaterialChange(index, 'serial_number_old', e.target.value)} placeholder="e.g., 106" />
+                      <input style={INPUT_STYLE} type="text" value={material.serial_number_old} onChange={(e) => handleMaterialChange(index, 'serial_number_old', e.target.value)} placeholder="e.g., 106" />
                     </div>
                   </div>
                   <div className="material-column">
                     <h5>New Material</h5>
                     <div className="form-group">
                       <label>Material Number</label>
-                      <input type="text" value={material.material_number_new} onChange={(e) => handleMaterialChange(index, 'material_number_new', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
+                      <input style={INPUT_STYLE} type="text" value={material.material_number_new} onChange={(e) => handleMaterialChange(index, 'material_number_new', e.target.value)} placeholder="e.g., 3BHE0573918R002" />
                     </div>
                     <div className="form-group">
                       <label>Serial Number</label>
-                      <input type="text" value={material.serial_number_new} onChange={(e) => handleMaterialChange(index, 'serial_number_new', e.target.value)} placeholder="e.g., 58" />
+                      <input style={INPUT_STYLE} type="text" value={material.serial_number_new} onChange={(e) => handleMaterialChange(index, 'serial_number_new', e.target.value)} placeholder="e.g., 58" />
                     </div>
                   </div>
                 </div>
@@ -435,13 +437,13 @@ export default function CreateReport() {
           <div className="form-row">
             <div className="form-group">
               <label>Repair Location</label>
-              <input type="text" name="repair_location" value={formData.repair_location} onChange={handleInputChange} placeholder="Location" />
+              <input style={INPUT_STYLE} type="text" name="repair_location" value={formData.repair_location} onChange={handleInputChange} placeholder="Location" />
             </div>
           </div>
 
           <div className="form-group">
             <label>Pictures</label>
-            <input type="file" multiple accept="image/*" onChange={handlePhotoCapture} />
+            <input style={INPUT_STYLE} type="file" multiple accept="image/*" onChange={handlePhotoCapture} />
             <small>Upload pictures from camera, gallery or files</small>
           </div>
 
@@ -487,7 +489,7 @@ export default function CreateReport() {
           <h3>Conclusion</h3>
           <div className="form-group">
             <label>Conclusion / Additional Notes</label>
-            <textarea name="conclusion" value={formData.conclusion} onChange={handleInputChange} placeholder="Final notes..." rows="3" />
+            <textarea style={INPUT_STYLE} name="conclusion" value={formData.conclusion} onChange={handleInputChange} placeholder="Final notes..." rows="3" />
           </div>
         </div>
 

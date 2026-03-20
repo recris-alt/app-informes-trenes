@@ -48,6 +48,7 @@ export default function ReportsTable({ onSelectReport }) {
         (r.technician_name || '').toLowerCase().includes(q) ||
         (r.converter_type || '').toLowerCase().includes(q) ||
         (r.fault_corrected || '').toLowerCase().includes(q) ||
+        (r.project || '').toLowerCase().includes(q) ||
         new Date(r.date).toLocaleDateString().includes(q)
       )
     })
@@ -120,6 +121,9 @@ export default function ReportsTable({ onSelectReport }) {
                 <th onClick={() => handleSort('technician_name')}>
                   Técnico <SortIcon field="technician_name" />
                 </th>
+                <th onClick={() => handleSort('project')}>
+                  Proyecto <SortIcon field="project" />
+                </th>
                 <th onClick={() => handleSort('date')}>
                   Fecha <SortIcon field="date" />
                 </th>
@@ -138,6 +142,7 @@ export default function ReportsTable({ onSelectReport }) {
                   <td>{report.customer || '—'}</td>
                   <td>{report.depot || '—'}</td>
                   <td>{report.technician_name || '—'}</td>
+                  <td>{report.project || '—'}</td>
                   <td>{new Date(report.date).toLocaleDateString()}</td>
                   <td className="cell-converter">{report.converter_type || '—'}</td>
                   <td>

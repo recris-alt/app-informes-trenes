@@ -63,7 +63,7 @@ export default function Login({ onLoginSuccess }) {
       <div className="login-box">
         <div className="login-header">
           <div className="login-logo">ABB</div>
-          <h1>Informe de Rework</h1>
+          <h1>Informe de ABB</h1>
           <p>Sistema de Reportes · Motion Business</p>
         </div>
 

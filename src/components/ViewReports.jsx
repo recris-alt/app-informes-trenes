@@ -25,6 +25,9 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
   const [loading, setLoading] = useState(true)
   const [selectedReport, setSelectedReport] = useState(null)
   const [exporting, setExporting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editData, setEditData] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchReports()
@@ -68,6 +71,65 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
       setSelectedReport(null)
     } catch (error) {
       console.error('Error:', error)
+    }
+  }
+
+
+  const startEdit = () => {
+    setEditData({ ...selectedReport })
+    setEditing(true)
+  }
+
+  const cancelEdit = () => {
+    setEditing(false)
+    setEditData(null)
+  }
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target
+    setEditData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const saveEdit = async () => {
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .update({
+          ticket_number: editData.ticket_number,
+          motion_business: editData.motion_business,
+          technician_name: editData.technician_name,
+          date: editData.date,
+          customer: editData.customer,
+          depot: editData.depot,
+          project: editData.project,
+          unit: editData.unit,
+          converter_type: editData.converter_type,
+          converter_sn: editData.converter_sn,
+          detected_defect: editData.detected_defect,
+          failure_classification: editData.failure_classification,
+          start_time: editData.start_time,
+          end_time: editData.end_time,
+          rework_points: editData.rework_points,
+          fault_corrected: editData.fault_corrected,
+          repair_location: editData.repair_location,
+          conclusion: editData.conclusion,
+        })
+        .eq('id', editData.id)
+
+      if (error) throw error
+
+      // Update local state
+      const updated = { ...selectedReport, ...editData }
+      setReports(reports.map(r => r.id === updated.id ? updated : r))
+      setSelectedReport(updated)
+      setEditing(false)
+      setEditData(null)
+    } catch (err) {
+      console.error('Error saving:', err)
+      alert('Error al guardar: ' + err.message)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -412,92 +474,227 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
               </div>
 
               <div className="detail-body">
-                <div className="export-buttons">
-                  <button onClick={exportToPDF} disabled={exporting} className="export-btn pdf-btn">
-                    {exporting ? '⏳ Generando...' : '📄 Export PDF'}
-                  </button>
-                  <button onClick={printReport} disabled={exporting} className="export-btn print-btn">
-                    🖨️ Print
-                  </button>
-                </div>
+                {!editing ? (
+                  <>
+                    <div className="export-buttons">
+                      <button onClick={exportToPDF} disabled={exporting} className="export-btn pdf-btn">
+                        {exporting ? '⏳ Generando...' : '📄 Export PDF'}
+                      </button>
+                      <button onClick={printReport} disabled={exporting} className="export-btn print-btn">
+                        🖨️ Print
+                      </button>
+                      <button onClick={startEdit} className="export-btn edit-btn">
+                        ✏️ Editar
+                      </button>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>HEADER</h4>
-                  <p><b>Ticket Nr:</b> {selectedReport.ticket_number}</p>
-                  <p><b>Motion Business:</b> {selectedReport.motion_business}</p>
-                  <p><b>Date:</b> {new Date(selectedReport.date).toLocaleDateString()}</p>
-                  <p><b>Technician:</b> {selectedReport.technician_name}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>HEADER</h4>
+                      <p><b>Ticket Nr:</b> {selectedReport.ticket_number}</p>
+                      <p><b>Motion Business:</b> {selectedReport.motion_business}</p>
+                      <p><b>Date:</b> {new Date(selectedReport.date).toLocaleDateString()}</p>
+                      <p><b>Technician:</b> {selectedReport.technician_name}</p>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>AFFECTED PLANT</h4>
-                  <p><b>Customer:</b> {selectedReport.customer}</p>
-                  <p><b>Depot:</b> {selectedReport.depot}</p>
-                  <p><b>Project:</b> {selectedReport.project}</p>
-                  <p><b>Vehicle #:</b> {selectedReport.unit}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>AFFECTED PLANT</h4>
+                      <p><b>Customer:</b> {selectedReport.customer}</p>
+                      <p><b>Depot:</b> {selectedReport.depot}</p>
+                      <p><b>Project:</b> {selectedReport.project}</p>
+                      <p><b>Vehicle #:</b> {selectedReport.unit}</p>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>CONVERTER</h4>
-                  <p><b>Type:</b> {selectedReport.converter_type}</p>
-                  <p><b>SN:</b> {selectedReport.converter_sn}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>CONVERTER</h4>
+                      <p><b>Type:</b> {selectedReport.converter_type}</p>
+                      <p><b>SN:</b> {selectedReport.converter_sn}</p>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>SERVICE TIMES</h4>
-                  <p><b>Start:</b> {selectedReport.start_time} &nbsp;→&nbsp; <b>End:</b> {selectedReport.end_time}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>SERVICE TIMES</h4>
+                      <p><b>Start:</b> {selectedReport.start_time} &nbsp;→&nbsp; <b>End:</b> {selectedReport.end_time}</p>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>DETECTED DEFECT</h4>
-                  <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.detected_defect}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>DETECTED DEFECT</h4>
+                      <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.detected_defect}</p>
+                    </div>
 
-                <div className="detail-section">
-                  <h4>EXECUTED WORK</h4>
-                  <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.rework_points}</p>
-                  <p style={{marginTop: '8px'}}><b>Fault Corrected:</b> {(selectedReport.fault_corrected || 'yes').toUpperCase()}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>EXECUTED WORK</h4>
+                      <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.rework_points}</p>
+                      <p style={{marginTop: '8px'}}><b>Fault Corrected:</b> {(selectedReport.fault_corrected || 'yes').toUpperCase()}</p>
+                    </div>
 
-                {selectedReport.replaced_materials && selectedReport.replaced_materials.length > 0 && (
-                  <div className="detail-section">
-                    <h4>REPLACED MATERIALS</h4>
-                    {selectedReport.replaced_materials.map((material, idx) => (
-                      <div key={idx} className="material-display">
-                        <p><b>Material {idx + 1}</b></p>
-                        <p><b>Old:</b> Nr: {material.material_number_old} | SN: {material.serial_number_old}</p>
-                        <p><b>New:</b> Nr: {material.material_number_new} | SN: {material.serial_number_new}</p>
+                    {selectedReport.replaced_materials && selectedReport.replaced_materials.length > 0 && (
+                      <div className="detail-section">
+                        <h4>REPLACED MATERIALS</h4>
+                        {selectedReport.replaced_materials.map((material, idx) => (
+                          <div key={idx} className="material-display">
+                            <p><b>Material {idx + 1}</b></p>
+                            <p><b>Old:</b> Nr: {material.material_number_old} | SN: {material.serial_number_old}</p>
+                            <p><b>New:</b> Nr: {material.material_number_new} | SN: {material.serial_number_new}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                <div className="detail-section">
-                  <h4>CONCLUSION</h4>
-                  <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.conclusion}</p>
-                </div>
+                    <div className="detail-section">
+                      <h4>CONCLUSION</h4>
+                      <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.conclusion}</p>
+                    </div>
 
-                {selectedReport.photo_urls && selectedReport.photo_urls.length > 0 && (
-                  <div className="detail-section">
-                    <h4>PICTURES ({selectedReport.photo_urls.length})</h4>
-                    <div className="photo-grid">
-                      {selectedReport.photo_urls.map((url, idx) => (
-                        <img key={idx} src={url} alt={`Photo ${idx + 1}`} />
-                      ))}
+                    {selectedReport.photo_urls && selectedReport.photo_urls.length > 0 && (
+                      <div className="detail-section">
+                        <h4>PICTURES ({selectedReport.photo_urls.length})</h4>
+                        <div className="photo-grid">
+                          {selectedReport.photo_urls.map((url, idx) => (
+                            <img key={idx} src={url} alt={`Photo ${idx + 1}`} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedReport.signature_url && (
+                      <div className="detail-section">
+                        <h4>SIGNATURE</h4>
+                        <img src={selectedReport.signature_url} alt="Signature" style={{maxWidth: '260px', background: '#fff', padding: '8px', borderRadius: '4px'}} />
+                      </div>
+                    )}
+
+                    <button onClick={() => deleteReport(selectedReport.id)} className="delete-btn">
+                      🗑️ Delete Report
+                    </button>
+                  </>
+                ) : (
+                  <div className="edit-form">
+                    <div className="edit-section">
+                      <h4>HEADER</h4>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Ticket Nr</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="ticket_number" value={editData.ticket_number || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>Motion Business</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="motion_business" value={editData.motion_business || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Technician</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="technician_name" value={editData.technician_name || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>Date</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="date" name="date" value={editData.date || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>AFFECTED PLANT</h4>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Customer</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="customer" value={editData.customer || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>Depot</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="depot" value={editData.depot || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Project</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="project" value={editData.project || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>Vehicle #</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="unit" value={editData.unit || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>CONVERTER</h4>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Type</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="converter_type" value={editData.converter_type || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>SN</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="converter_sn" value={editData.converter_sn || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>FAILURE DESCRIPTION</h4>
+                      <div className="edit-group">
+                        <label>Detected Defect</label>
+                        <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="detected_defect" value={editData.detected_defect || ''} onChange={handleEditChange} rows="4" />
+                      </div>
+                      <div className="edit-group" style={{marginTop:'12px'}}>
+                        <label>Failure Classification</label>
+                        <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="failure_classification" value={editData.failure_classification || ''} onChange={handleEditChange} />
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>SERVICE TIMES</h4>
+                      <div className="edit-row">
+                        <div className="edit-group">
+                          <label>Start</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" name="start_time" value={editData.start_time || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>End</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" name="end_time" value={editData.end_time || ''} onChange={handleEditChange} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>EXECUTED WORK</h4>
+                      <div className="edit-group">
+                        <label>Work Points</label>
+                        <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="rework_points" value={editData.rework_points || ''} onChange={handleEditChange} rows="6" />
+                      </div>
+                      <div className="edit-group" style={{marginTop:'12px'}}>
+                        <label>Fault Corrected</label>
+                        <select style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="fault_corrected" value={editData.fault_corrected || 'yes'} onChange={handleEditChange}>
+                          <option value="yes">Yes</option>
+                          <option value="no">No</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>SERVICE CONFIRMATION</h4>
+                      <div className="edit-group">
+                        <label>Repair Location</label>
+                        <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="repair_location" value={editData.repair_location || ''} onChange={handleEditChange} />
+                      </div>
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>CONCLUSION</h4>
+                      <div className="edit-group">
+                        <label>Notes</label>
+                        <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="conclusion" value={editData.conclusion || ''} onChange={handleEditChange} rows="3" />
+                      </div>
+                    </div>
+
+                    <div className="edit-actions">
+                      <button onClick={cancelEdit} className="cancel-edit-btn">Cancelar</button>
+                      <button onClick={saveEdit} disabled={saving} className="save-edit-btn">
+                        {saving ? '💾 Guardando...' : '💾 Guardar Cambios'}
+                      </button>
                     </div>
                   </div>
                 )}
-
-                {selectedReport.signature_url && (
-                  <div className="detail-section">
-                    <h4>SIGNATURE</h4>
-                    <img src={selectedReport.signature_url} alt="Signature" style={{maxWidth: '260px', background: '#fff', padding: '8px', borderRadius: '4px'}} />
-                  </div>
-                )}
-
-                <button onClick={() => deleteReport(selectedReport.id)} className="delete-btn">
-                  🗑️ Delete Report
-                </button>
               </div>
             </div>
           )}

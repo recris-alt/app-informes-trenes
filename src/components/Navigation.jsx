@@ -5,7 +5,7 @@ export default function Navigation({ currentPage, setCurrentPage, isLoggedIn, cu
     <nav className="navigation">
       <div className="nav-container">
         <div className="nav-logo">
-          <h1>Informes Rework</h1>
+          <h1>Informes</h1>
         </div>
 
         {isLoggedIn && (

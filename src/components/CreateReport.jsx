@@ -466,7 +466,7 @@ export default function CreateReport() {
             <div className="signature-container">
               <canvas
                 ref={canvasRef}
-                className="signature-canvas"
+                className="signature-canvas" style={{backgroundColor: "#ffffff"}}
                 // Mouse events
                 onMouseDown={startDrawing}
                 onMouseMove={draw}

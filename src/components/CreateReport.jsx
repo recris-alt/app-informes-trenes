@@ -5,6 +5,7 @@ import '../styles/CreateReport.css'
 const EMPTY_FORM = {
   technician_name: '',
   date: new Date().toISOString().split('T')[0],
+  ticket_type: 'rework',
   ticket_number: '',
   motion_business: '',
   customer: '',
@@ -284,9 +285,19 @@ export default function CreateReport() {
           <h3>Header Information</h3>
           <div className="form-row">
             <div className="form-group">
-              <label>Ticket Number</label>
-              <input style={INPUT_STYLE} type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} placeholder="Ticket Nr" />
+              <label>Tipo de Servicio *</label>
+              <select style={INPUT_STYLE} name="ticket_type" value={formData.ticket_type} onChange={handleInputChange} required>
+                <option value="rework">Rework</option>
+                <option value="fault">Fault / Avería</option>
+                <option value="ticket">Ticket</option>
+              </select>
             </div>
+            {formData.ticket_type === 'ticket' && (
+              <div className="form-group">
+                <label>Ticket Number *</label>
+                <input style={INPUT_STYLE} type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} required placeholder="Nº de ticket" />
+              </div>
+            )}
             <div className="form-group">
               <label>Motion Business</label>
               <input style={INPUT_STYLE} type="text" name="motion_business" value={formData.motion_business} onChange={handleInputChange} placeholder="e.g., MOTR India" />

@@ -317,3 +317,57 @@
     color: #666;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* TYPE FILTERS                                                                  */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.type-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.type-filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.type-filter-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.type-filter-clear {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 2px solid #ccc;
+  background: transparent;
+  color: #999;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-filter-clear:hover {
+  border-color: #999;
+  color: #666;
+}

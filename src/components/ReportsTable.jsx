@@ -56,7 +56,7 @@ export default function ReportsTable({ onSelectReport }) {
         new Date(r.date).toLocaleDateString().includes(q)
       )
     })
-  }, [reports, search])
+  }, [reports, search, typeFilter])
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {

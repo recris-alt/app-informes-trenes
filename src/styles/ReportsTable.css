@@ -104,12 +104,34 @@
 
 .table-scroll {
   overflow-x: auto;
+  transform: rotateX(180deg);
+  -webkit-transform: rotateX(180deg);
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #FF000F;
 }
 
 .reports-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  transform: rotateX(180deg);
+  -webkit-transform: rotateX(180deg);
 }
 
 .reports-table thead tr {

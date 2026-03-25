@@ -237,6 +237,7 @@ export default function CreateReport() {
         .insert([{
           technician_name: formData.technician_name,
           date: formData.date,
+          ticket_type: formData.ticket_type,
           ticket_number: formData.ticket_number,
           motion_business: formData.motion_business,
           customer: formData.customer,

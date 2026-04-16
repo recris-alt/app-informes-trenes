@@ -17,8 +17,7 @@ const EMPTY_FORM = {
   first_message_date: '',
   detected_defect: '',
   failure_classification: '',
-  start_time: '',
-  end_time: '',
+  service_days: [],
   rework_points: '',
   fault_corrected: 'yes',
   replaced_materials: [],
@@ -172,6 +171,33 @@ export default function CreateReport() {
     })
   }, [])
 
+
+  const addServiceDay = () => {
+    setFormData(prev => ({
+      ...prev,
+      service_days: [...prev.service_days, {
+        date: new Date().toISOString().split('T')[0],
+        start_time: '',
+        end_time: ''
+      }]
+    }))
+  }
+
+  const removeServiceDay = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      service_days: prev.service_days.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleServiceDayChange = useCallback((index, field, value) => {
+    setFormData(prev => {
+      const updated = [...prev.service_days]
+      updated[index] = { ...updated[index], [field]: value }
+      return { ...prev, service_days: updated }
+    })
+  }, [])
+
   const handlePhotoCapture = (e) => {
     const files = Array.from(e.target.files)
     setFormData(prev => ({ ...prev, photos: [...prev.photos, ...files] }))
@@ -249,8 +275,7 @@ export default function CreateReport() {
           first_message_date: formData.first_message_date || null,
           detected_defect: formData.detected_defect,
           failure_classification: formData.failure_classification,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
+          service_days: formData.service_days,
           rework_points: formData.rework_points,
           fault_corrected: formData.fault_corrected,
           replaced_materials: formData.replaced_materials,
@@ -374,16 +399,33 @@ export default function CreateReport() {
 
         <div className="form-section">
           <h3>Service Times</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Start Time</label>
-              <input style={INPUT_STYLE} type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} />
-            </div>
-            <div className="form-group">
-              <label>End Time</label>
-              <input style={INPUT_STYLE} type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} />
-            </div>
-          </div>
+          {formData.service_days.length === 0 ? (
+            <p className="no-materials">No hay días añadidos todavía</p>
+          ) : (
+            formData.service_days.map((day, index) => (
+              <div key={index} className="form-section-sub">
+                <div className="material-header">
+                  <h4>Día {index + 1}</h4>
+                  <button type="button" onClick={() => removeServiceDay(index)} className="remove-material-btn">Eliminar</button>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha</label>
+                    <input style={INPUT_STYLE} type="date" value={day.date} onChange={e => handleServiceDayChange(index, 'date', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label>Hora Inicio</label>
+                    <input style={INPUT_STYLE} type="time" value={day.start_time} onChange={e => handleServiceDayChange(index, 'start_time', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label>Hora Fin</label>
+                    <input style={INPUT_STYLE} type="time" value={day.end_time} onChange={e => handleServiceDayChange(index, 'end_time', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+          <button type="button" onClick={addServiceDay} className="add-material-btn">+ Añadir Día</button>
         </div>
 
         <div className="form-section">

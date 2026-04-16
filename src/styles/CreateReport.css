@@ -833,3 +833,14 @@
     border-color: #404040;
   }
 }
+
+/* Service days - 3 columnas */
+.form-section-sub .form-row {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .form-section-sub .form-row {
+    grid-template-columns: 1fr;
+  }
+}

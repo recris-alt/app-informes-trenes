@@ -7,6 +7,7 @@ const EMPTY_FORM = {
   date: new Date().toISOString().split('T')[0],
   ticket_type: 'rework',
   ticket_number: '',
+  title: '',
   motion_business: '',
   customer: '',
   depot: '',
@@ -265,6 +266,7 @@ export default function CreateReport() {
           date: formData.date,
           ticket_type: formData.ticket_type,
           ticket_number: formData.ticket_number,
+          title: formData.title,
           motion_business: formData.motion_business,
           customer: formData.customer,
           depot: formData.depot,
@@ -318,10 +320,15 @@ export default function CreateReport() {
                 <option value="ticket">Ticket</option>
               </select>
             </div>
-            {formData.ticket_type === 'ticket' && (
+            {formData.ticket_type === 'ticket' ? (
               <div className="form-group">
                 <label>Ticket Number *</label>
                 <input style={INPUT_STYLE} type="text" name="ticket_number" value={formData.ticket_number} onChange={handleInputChange} required placeholder="Nº de ticket" />
+              </div>
+            ) : (
+              <div className="form-group">
+                <label>Título</label>
+                <input style={INPUT_STYLE} type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="Título del informe" />
               </div>
             )}
             <div className="form-group">

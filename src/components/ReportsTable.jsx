@@ -46,6 +46,7 @@ export default function ReportsTable({ onSelectReport }) {
       if (!q) return true
       return (
         (r.ticket_number || '').toLowerCase().includes(q) ||
+        (r.title || '').toLowerCase().includes(q) ||
         (r.customer || '').toLowerCase().includes(q) ||
         (r.depot || '').toLowerCase().includes(q) ||
         (r.technician_name || '').toLowerCase().includes(q) ||
@@ -141,8 +142,8 @@ export default function ReportsTable({ onSelectReport }) {
           <table className="reports-table">
             <thead>
               <tr>
-                <th onClick={() => handleSort('ticket_number')}>
-                  Ticket Nr <SortIcon field="ticket_number" />
+                <th onClick={() => handleSort('title')}>
+                  Título <SortIcon field="title" />
                 </th>
                 <th onClick={() => handleSort('ticket_type')}>
                   Tipo <SortIcon field="ticket_type" />
@@ -179,7 +180,11 @@ export default function ReportsTable({ onSelectReport }) {
             <tbody>
               {sorted.map(report => (
                 <tr key={report.id} onClick={() => onSelectReport(report)} className="table-row">
-                  <td className="cell-ticket">{report.ticket_number || '—'}</td>
+                  <td className="cell-ticket">
+                    {report.ticket_type === 'ticket'
+                      ? (report.ticket_number || '—')
+                      : (report.title || '—')}
+                  </td>
                   <td>
                     {(() => {
                       const t = report.ticket_type || 'rework'

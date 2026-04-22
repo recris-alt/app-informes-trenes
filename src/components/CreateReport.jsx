@@ -522,8 +522,17 @@ export default function CreateReport() {
 
           <div className="form-group">
             <label>Pictures</label>
-            <input style={INPUT_STYLE} type="file" multiple accept="image/*" onChange={handlePhotoCapture} />
-            <small>Upload pictures from camera, gallery or files</small>
+            <div className="photo-upload-buttons">
+              <label className="photo-upload-btn camera-btn">
+                📷 Camera
+                <input type="file" accept="image/*" capture="environment" onChange={handlePhotoCapture} style={{display:'none'}} />
+              </label>
+              <label className="photo-upload-btn gallery-btn">
+                🖼️ Gallery
+                <input type="file" accept="image/*" multiple onChange={handlePhotoCapture} style={{display:'none'}} />
+              </label>
+            </div>
+            <small>Use Camera to take a new photo, or Gallery to select existing ones</small>
           </div>
 
           {photoPreview.length > 0 && (

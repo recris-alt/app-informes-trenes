@@ -844,3 +844,58 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+/* PHOTO UPLOAD BUTTONS */
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+.photo-upload-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.photo-upload-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.camera-btn {
+  background: linear-gradient(135deg, #FF000F 0%, #DC143C 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 0, 15, 0.2);
+}
+
+.camera-btn:hover {
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 15, 0.3);
+}
+
+.gallery-btn {
+  background: linear-gradient(135deg, #6764f6 0%, #93a1ff 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(103, 100, 246, 0.2);
+}
+
+.gallery-btn:hover {
+  background: linear-gradient(135deg, #93a1ff 0%, #b8b5ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(103, 100, 246, 0.3);
+}
+
+@media (max-width: 480px) {
+  .photo-upload-buttons {
+    flex-direction: column;
+  }
+}

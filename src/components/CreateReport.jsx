@@ -22,7 +22,7 @@ const EMPTY_FORM = {
   rework_points: '',
   work_permit: 'yes',
   fault_corrected: 'yes',
-  fault_not_corrected_reason: '',
+  permit_not_completed_reason: '',
   replaced_materials: [],
   repair_location: '',
   conclusion: '',
@@ -283,7 +283,7 @@ export default function CreateReport() {
           rework_points: formData.rework_points,
           work_permit: formData.work_permit,
           fault_corrected: formData.fault_corrected,
-          fault_not_corrected_reason: formData.fault_not_corrected_reason,
+          permit_not_completed_reason: formData.permit_not_completed_reason,
           replaced_materials: formData.replaced_materials,
           repair_location: formData.repair_location,
           conclusion: formData.conclusion,
@@ -461,10 +461,10 @@ export default function CreateReport() {
               </select>
             </div>
           </div>
-          {formData.fault_corrected === 'no' && (
+          {formData.work_permit === 'no' && (
             <div className="form-group" style={{marginTop: '12px'}}>
-              <label>Reason fault was not corrected *</label>
-              <textarea style={INPUT_STYLE} name="fault_not_corrected_reason" value={formData.fault_not_corrected_reason} onChange={handleInputChange} placeholder="Explain why the fault could not be corrected..." rows="3" required />
+              <label>Reason permit was not completed *</label>
+              <textarea style={INPUT_STYLE} name="permit_not_completed_reason" value={formData.permit_not_completed_reason} onChange={handleInputChange} placeholder="Explain why the work permit was not completed..." rows="3" required />
             </div>
           )}
         </div>

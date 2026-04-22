@@ -331,8 +331,8 @@ export default function CreateReport() {
               </div>
             ) : (
               <div className="form-group">
-                <label>Título</label>
-                <input style={INPUT_STYLE} type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="Título del informe" />
+                <label>Title</label>
+                <input style={INPUT_STYLE} type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="Report title" />
               </div>
             )}
             <div className="form-group">
@@ -458,6 +458,7 @@ export default function CreateReport() {
               <select style={INPUT_STYLE} name="fault_corrected" value={formData.fault_corrected} onChange={handleInputChange}>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
+                <option value="pending">Pending</option>
               </select>
             </div>
           </div>

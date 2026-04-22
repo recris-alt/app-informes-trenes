@@ -20,7 +20,9 @@ const EMPTY_FORM = {
   failure_classification: '',
   service_days: [],
   rework_points: '',
+  work_permit: 'yes',
   fault_corrected: 'yes',
+  fault_not_corrected_reason: '',
   replaced_materials: [],
   repair_location: '',
   conclusion: '',
@@ -279,7 +281,9 @@ export default function CreateReport() {
           failure_classification: formData.failure_classification,
           service_days: formData.service_days,
           rework_points: formData.rework_points,
+          work_permit: formData.work_permit,
           fault_corrected: formData.fault_corrected,
+          fault_not_corrected_reason: formData.fault_not_corrected_reason,
           replaced_materials: formData.replaced_materials,
           repair_location: formData.repair_location,
           conclusion: formData.conclusion,
@@ -407,32 +411,32 @@ export default function CreateReport() {
         <div className="form-section">
           <h3>Service Times</h3>
           {formData.service_days.length === 0 ? (
-            <p className="no-materials">No hay días añadidos todavía</p>
+            <p className="no-materials">No days added yet</p>
           ) : (
             formData.service_days.map((day, index) => (
               <div key={index} className="form-section-sub">
                 <div className="material-header">
-                  <h4>Día {index + 1}</h4>
-                  <button type="button" onClick={() => removeServiceDay(index)} className="remove-material-btn">Eliminar</button>
+                  <h4>Day {index + 1}</h4>
+                  <button type="button" onClick={() => removeServiceDay(index)} className="remove-material-btn">Remove</button>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Fecha</label>
+                    <label>Date</label>
                     <input style={INPUT_STYLE} type="date" value={day.date} onChange={e => handleServiceDayChange(index, 'date', e.target.value)} />
                   </div>
                   <div className="form-group">
-                    <label>Hora Inicio</label>
+                    <label>Start Time</label>
                     <input style={INPUT_STYLE} type="time" value={day.start_time} onChange={e => handleServiceDayChange(index, 'start_time', e.target.value)} />
                   </div>
                   <div className="form-group">
-                    <label>Hora Fin</label>
+                    <label>End Time</label>
                     <input style={INPUT_STYLE} type="time" value={day.end_time} onChange={e => handleServiceDayChange(index, 'end_time', e.target.value)} />
                   </div>
                 </div>
               </div>
             ))
           )}
-          <button type="button" onClick={addServiceDay} className="add-material-btn">+ Añadir Día</button>
+          <button type="button" onClick={addServiceDay} className="add-material-btn">+ Add Day</button>
         </div>
 
         <div className="form-section">
@@ -443,6 +447,13 @@ export default function CreateReport() {
           </div>
           <div className="form-row">
             <div className="form-group">
+              <label>Has the work permit been completed?</label>
+              <select style={INPUT_STYLE} name="work_permit" value={formData.work_permit} onChange={handleInputChange}>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label>Fault Corrected?</label>
               <select style={INPUT_STYLE} name="fault_corrected" value={formData.fault_corrected} onChange={handleInputChange}>
                 <option value="yes">Yes</option>
@@ -450,6 +461,12 @@ export default function CreateReport() {
               </select>
             </div>
           </div>
+          {formData.fault_corrected === 'no' && (
+            <div className="form-group" style={{marginTop: '12px'}}>
+              <label>Reason fault was not corrected *</label>
+              <textarea style={INPUT_STYLE} name="fault_not_corrected_reason" value={formData.fault_not_corrected_reason} onChange={handleInputChange} placeholder="Explain why the fault could not be corrected..." rows="3" required />
+            </div>
+          )}
         </div>
 
         <div className="form-section">

@@ -117,6 +117,34 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
     }))
   }
 
+
+  const addEditMaterial = () => {
+    setEditData(prev => ({
+      ...prev,
+      replaced_materials: [...(prev.replaced_materials || []), {
+        material_number_old: '',
+        serial_number_old: '',
+        material_number_new: '',
+        serial_number_new: ''
+      }]
+    }))
+  }
+
+  const removeEditMaterial = (index) => {
+    setEditData(prev => ({
+      ...prev,
+      replaced_materials: (prev.replaced_materials || []).filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleEditMaterialChange = (index, field, value) => {
+    setEditData(prev => {
+      const mats = [...(prev.replaced_materials || [])]
+      mats[index] = { ...mats[index], [field]: value }
+      return { ...prev, replaced_materials: mats }
+    })
+  }
+
   const saveEdit = async () => {
     setSaving(true)
     try {
@@ -143,6 +171,7 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
           work_permit: editData.work_permit,
           permit_not_completed_reason: editData.permit_not_completed_reason,
           fault_corrected: editData.fault_corrected,
+          replaced_materials: editData.replaced_materials || [],
           repair_location: editData.repair_location,
           conclusion: editData.conclusion,
         })
@@ -765,6 +794,43 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
                           <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="permit_not_completed_reason" value={editData.permit_not_completed_reason || ''} onChange={handleEditChange} rows="3" />
                         </div>
                       )}
+                    </div>
+
+                    <div className="edit-section">
+                      <h4>REPLACED MATERIALS</h4>
+                      {(editData.replaced_materials || []).map((mat, idx) => (
+                        <div key={idx} className="edit-material-card">
+                          <div className="edit-material-header">
+                            <span>Material {idx + 1}</span>
+                            <button type="button" onClick={() => removeEditMaterial(idx)} className="remove-day-btn">Remove</button>
+                          </div>
+                          <div className="edit-material-cols">
+                            <div className="edit-material-col">
+                              <p className="edit-material-col-title">Old</p>
+                              <div className="edit-group">
+                                <label>Material Nr</label>
+                                <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} value={mat.material_number_old || ''} onChange={e => handleEditMaterialChange(idx, 'material_number_old', e.target.value)} placeholder="e.g. 3BHE057391R002" />
+                              </div>
+                              <div className="edit-group">
+                                <label>Serial Nr</label>
+                                <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} value={mat.serial_number_old || ''} onChange={e => handleEditMaterialChange(idx, 'serial_number_old', e.target.value)} placeholder="e.g. 106" />
+                              </div>
+                            </div>
+                            <div className="edit-material-col">
+                              <p className="edit-material-col-title">New</p>
+                              <div className="edit-group">
+                                <label>Material Nr</label>
+                                <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} value={mat.material_number_new || ''} onChange={e => handleEditMaterialChange(idx, 'material_number_new', e.target.value)} placeholder="e.g. 3BHE057391R002" />
+                              </div>
+                              <div className="edit-group">
+                                <label>Serial Nr</label>
+                                <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} value={mat.serial_number_new || ''} onChange={e => handleEditMaterialChange(idx, 'serial_number_new', e.target.value)} placeholder="e.g. 58" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button type="button" onClick={addEditMaterial} className="add-day-btn" style={{background:'linear-gradient(135deg,#4CAF50,#45a049)'}}>+ Add Material</button>
                     </div>
 
                     <div className="edit-section">

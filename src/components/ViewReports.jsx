@@ -90,13 +90,42 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
     setEditData(prev => ({ ...prev, [name]: value }))
   }
 
+
+  const handleEditServiceDayChange = (index, field, value) => {
+    setEditData(prev => {
+      const days = [...(prev.service_days || [])]
+      days[index] = { ...days[index], [field]: value }
+      return { ...prev, service_days: days }
+    })
+  }
+
+  const addEditServiceDay = () => {
+    setEditData(prev => ({
+      ...prev,
+      service_days: [...(prev.service_days || []), {
+        date: new Date().toISOString().split('T')[0],
+        start_time: '',
+        end_time: ''
+      }]
+    }))
+  }
+
+  const removeEditServiceDay = (index) => {
+    setEditData(prev => ({
+      ...prev,
+      service_days: (prev.service_days || []).filter((_, i) => i !== index)
+    }))
+  }
+
   const saveEdit = async () => {
     setSaving(true)
     try {
       const { error } = await supabase
         .from('reports')
         .update({
+          ticket_type: editData.ticket_type,
           ticket_number: editData.ticket_number,
+          title: editData.title,
           motion_business: editData.motion_business,
           technician_name: editData.technician_name,
           date: editData.date,
@@ -106,11 +135,13 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
           unit: editData.unit,
           converter_type: editData.converter_type,
           converter_sn: editData.converter_sn,
+          first_message_date: editData.first_message_date || null,
           detected_defect: editData.detected_defect,
           failure_classification: editData.failure_classification,
-          start_time: editData.start_time,
-          end_time: editData.end_time,
+          service_days: editData.service_days || [],
           rework_points: editData.rework_points,
+          work_permit: editData.work_permit,
+          permit_not_completed_reason: editData.permit_not_completed_reason,
           fault_corrected: editData.fault_corrected,
           repair_location: editData.repair_location,
           conclusion: editData.conclusion,
@@ -490,7 +521,10 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
 
                     <div className="detail-section">
                       <h4>HEADER</h4>
-                      <p><b>Ticket Nr:</b> {selectedReport.ticket_number}</p>
+                      <p><b>Type:</b> {selectedReport.ticket_type === 'fault' ? 'Fault / Avería' : selectedReport.ticket_type === 'ticket' ? 'Ticket' : 'Rework'}</p>
+                      {selectedReport.ticket_type === 'ticket'
+                        ? <p><b>Ticket Nr:</b> {selectedReport.ticket_number}</p>
+                        : <p><b>Title:</b> {selectedReport.title || '—'}</p>}
                       <p><b>Motion Business:</b> {selectedReport.motion_business}</p>
                       <p><b>Date:</b> {new Date(selectedReport.date).toLocaleDateString()}</p>
                       <p><b>Technician:</b> {selectedReport.technician_name}</p>
@@ -512,7 +546,15 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
 
                     <div className="detail-section">
                       <h4>SERVICE TIMES</h4>
-                      <p><b>Start:</b> {selectedReport.start_time} &nbsp;→&nbsp; <b>End:</b> {selectedReport.end_time}</p>
+                      {selectedReport.service_days && selectedReport.service_days.length > 0 ? (
+                        selectedReport.service_days.map((day, idx) => (
+                          <div key={idx} className="material-display">
+                            <p><b>Day {idx + 1}:</b> {day.date} &nbsp;|&nbsp; {day.start_time || '—'} → {day.end_time || '—'}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p>No service days recorded</p>
+                      )}
                     </div>
 
                     <div className="detail-section">
@@ -523,6 +565,10 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
                     <div className="detail-section">
                       <h4>EXECUTED WORK</h4>
                       <p style={{whiteSpace: 'pre-wrap'}}>{selectedReport.rework_points}</p>
+                      <p style={{marginTop: '8px'}}><b>Work Permit Completed:</b> {(selectedReport.work_permit || 'yes').toUpperCase()}</p>
+                      {selectedReport.work_permit === 'no' && selectedReport.permit_not_completed_reason && (
+                        <p style={{marginTop: '4px'}}><b>Reason:</b> {selectedReport.permit_not_completed_reason}</p>
+                      )}
                       <p style={{marginTop: '8px'}}><b>Fault Corrected:</b> {(selectedReport.fault_corrected || 'yes').toUpperCase()}</p>
                     </div>
 
@@ -572,22 +618,43 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
                       <h4>HEADER</h4>
                       <div className="edit-row">
                         <div className="edit-group">
-                          <label>Ticket Nr</label>
-                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="ticket_number" value={editData.ticket_number || ''} onChange={handleEditChange} />
+                          <label>Service Type</label>
+                          <select style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="ticket_type" value={editData.ticket_type || 'rework'} onChange={handleEditChange}>
+                            <option value="rework">Rework</option>
+                            <option value="fault">Fault / Avería</option>
+                            <option value="ticket">Ticket</option>
+                          </select>
                         </div>
+                        {editData.ticket_type === 'ticket' ? (
+                          <div className="edit-group">
+                            <label>Ticket Nr</label>
+                            <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="ticket_number" value={editData.ticket_number || ''} onChange={handleEditChange} />
+                          </div>
+                        ) : (
+                          <div className="edit-group">
+                            <label>Title</label>
+                            <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="title" value={editData.title || ''} onChange={handleEditChange} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="edit-row">
                         <div className="edit-group">
                           <label>Motion Business</label>
                           <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="motion_business" value={editData.motion_business || ''} onChange={handleEditChange} />
                         </div>
-                      </div>
-                      <div className="edit-row">
                         <div className="edit-group">
                           <label>Technician</label>
                           <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="technician_name" value={editData.technician_name || ''} onChange={handleEditChange} />
                         </div>
+                      </div>
+                      <div className="edit-row">
                         <div className="edit-group">
                           <label>Date</label>
                           <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="date" name="date" value={editData.date || ''} onChange={handleEditChange} />
+                        </div>
+                        <div className="edit-group">
+                          <label>First Message Date</label>
+                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="datetime-local" name="first_message_date" value={editData.first_message_date || ''} onChange={handleEditChange} />
                         </div>
                       </div>
                     </div>
@@ -644,16 +711,29 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
 
                     <div className="edit-section">
                       <h4>SERVICE TIMES</h4>
-                      <div className="edit-row">
-                        <div className="edit-group">
-                          <label>Start</label>
-                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" name="start_time" value={editData.start_time || ''} onChange={handleEditChange} />
+                      {(editData.service_days || []).map((day, idx) => (
+                        <div key={idx} className="edit-service-day">
+                          <div className="edit-service-day-header">
+                            <span>Day {idx + 1}</span>
+                            <button type="button" onClick={() => removeEditServiceDay(idx)} className="remove-day-btn">Remove</button>
+                          </div>
+                          <div className="edit-row" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+                            <div className="edit-group">
+                              <label>Date</label>
+                              <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="date" value={day.date || ''} onChange={e => handleEditServiceDayChange(idx, 'date', e.target.value)} />
+                            </div>
+                            <div className="edit-group">
+                              <label>Start Time</label>
+                              <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" value={day.start_time || ''} onChange={e => handleEditServiceDayChange(idx, 'start_time', e.target.value)} />
+                            </div>
+                            <div className="edit-group">
+                              <label>End Time</label>
+                              <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" value={day.end_time || ''} onChange={e => handleEditServiceDayChange(idx, 'end_time', e.target.value)} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="edit-group">
-                          <label>End</label>
-                          <input style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} type="time" name="end_time" value={editData.end_time || ''} onChange={handleEditChange} />
-                        </div>
-                      </div>
+                      ))}
+                      <button type="button" onClick={addEditServiceDay} className="add-day-btn">+ Add Day</button>
                     </div>
 
                     <div className="edit-section">
@@ -662,13 +742,29 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
                         <label>Work Points</label>
                         <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="rework_points" value={editData.rework_points || ''} onChange={handleEditChange} rows="6" />
                       </div>
-                      <div className="edit-group" style={{marginTop:'12px'}}>
-                        <label>Fault Corrected</label>
-                        <select style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="fault_corrected" value={editData.fault_corrected || 'yes'} onChange={handleEditChange}>
-                          <option value="yes">Yes</option>
-                          <option value="no">No</option>
-                        </select>
+                      <div className="edit-row" style={{marginTop:'12px'}}>
+                        <div className="edit-group">
+                          <label>Work Permit Completed?</label>
+                          <select style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="work_permit" value={editData.work_permit || 'yes'} onChange={handleEditChange}>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                          </select>
+                        </div>
+                        <div className="edit-group">
+                          <label>Fault Corrected?</label>
+                          <select style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="fault_corrected" value={editData.fault_corrected || 'yes'} onChange={handleEditChange}>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="pending">Pending</option>
+                          </select>
+                        </div>
                       </div>
+                      {editData.work_permit === 'no' && (
+                        <div className="edit-group" style={{marginTop:'12px'}}>
+                          <label>Reason permit not completed</label>
+                          <textarea style={{backgroundColor:'#fff',color:'#333',colorScheme:'light'}} name="permit_not_completed_reason" value={editData.permit_not_completed_reason || ''} onChange={handleEditChange} rows="3" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="edit-section">
@@ -688,9 +784,9 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
                     </div>
 
                     <div className="edit-actions">
-                      <button onClick={cancelEdit} className="cancel-edit-btn">Cancelar</button>
+                      <button onClick={cancelEdit} className="cancel-edit-btn">Cancel</button>
                       <button onClick={saveEdit} disabled={saving} className="save-edit-btn">
-                        {saving ? '💾 Guardando...' : '💾 Guardar Cambios'}
+                        {saving ? '💾 Saving...' : '💾 Save Changes'}
                       </button>
                     </div>
                   </div>

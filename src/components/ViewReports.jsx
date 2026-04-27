@@ -201,234 +201,366 @@ export default function ViewReports({ preselectedReport, onClearPreselected }) {
     setExporting(true)
 
     try {
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      })
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const W = pdf.internal.pageSize.getWidth()
+      const H = pdf.internal.pageSize.getHeight()
+      const ML = 14, MR = 14, CONTENT_W = W - ML - MR
+      let y = 0
 
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      let y = 10
-
-      // --- Pre-load all images in parallel BEFORE building PDF ---
+      // Pre-load images
       const photoUrls = selectedReport.photo_urls || []
       const [photoBase64Array, signatureBase64] = await Promise.all([
         Promise.all(photoUrls.map(url => loadImageAsBase64(url))),
         selectedReport.signature_url ? loadImageAsBase64(selectedReport.signature_url) : Promise.resolve(null)
       ])
 
-      const addPageIfNeeded = (neededSpace = 40) => {
-        if (y > pageHeight - neededSpace) {
-          pdf.addPage()
-          y = 15
-        }
-      }
+      const addPage = () => { pdf.addPage(); y = 42 }
+      const checkY = (needed = 30) => { if (y + needed > H - 16) addPage() }
 
-      const drawLine = () => {
-        pdf.setLineWidth(0.4)
-        pdf.line(15, y, pageWidth - 15, y)
-        y += 5
-      }
-
-      const sectionTitle = (title) => {
-        addPageIfNeeded(20)
-        pdf.setFontSize(10)
+      // ── Helper: section header band ──────────────────────────────────────
+      const section = (title) => {
+        checkY(22)
+        pdf.setFillColor(240, 240, 240)
+        pdf.roundedRect(ML, y, CONTENT_W, 8, 1, 1, 'F')
+        pdf.setFontSize(8)
         pdf.setFont(undefined, 'bold')
-        pdf.setTextColor(204, 0, 0)
-        pdf.text(title, 15, y)
+        pdf.setTextColor(180, 0, 0)
+        pdf.text(title, ML + 3, y + 5.5)
         pdf.setTextColor(0, 0, 0)
-        y += 7
+        y += 12
       }
 
-      // HEADER
+      // ── Helper: field pair (label + value) ───────────────────────────────
+      const field = (label, value, x = ML, colW = CONTENT_W) => {
+        checkY(10)
+        pdf.setFontSize(7.5)
+        pdf.setFont(undefined, 'bold')
+        pdf.setTextColor(120, 120, 120)
+        pdf.text(label.toUpperCase(), x, y)
+        pdf.setFont(undefined, 'normal')
+        pdf.setTextColor(30, 30, 30)
+        const lines = pdf.splitTextToSize(value || '—', colW - 2)
+        pdf.text(lines, x, y + 4)
+        return lines.length * 4.2 + 6
+      }
+
+      // ── Helper: two fields side by side ──────────────────────────────────
+      const fieldRow = (pairs) => {
+        const colW = CONTENT_W / pairs.length
+        let maxH = 0
+        pairs.forEach(([label, value], i) => {
+          const h = field(label, value, ML + i * colW, colW)
+          if (h > maxH) maxH = h
+        })
+        y += maxH
+      }
+
+      // ── Helper: separator ────────────────────────────────────────────────
+      const sep = (gap = 4) => {
+        pdf.setDrawColor(220, 220, 220)
+        pdf.setLineWidth(0.3)
+        pdf.line(ML, y, W - MR, y)
+        y += gap
+      }
+
+      // ════════════════════════════════════════════════════════════════════
+      // HEADER BAND
+      // ════════════════════════════════════════════════════════════════════
+      pdf.setFillColor(204, 0, 0)
+      pdf.rect(0, 0, W, 28, 'F')
+
+      // ABB logo text
       pdf.setFontSize(22)
       pdf.setFont(undefined, 'bold')
-      pdf.setTextColor(204, 0, 0)
-      pdf.text('ABB', 15, y)
+      pdf.setTextColor(255, 255, 255)
+      pdf.text('ABB', ML, 18)
 
-      pdf.setFontSize(13)
+      // Report title
+      pdf.setFontSize(11)
+      pdf.setFont(undefined, 'normal')
+      pdf.setTextColor(255, 220, 220)
+      pdf.text('Field Service Report', ML + 22, 18)
+
+      // Top-right info block
+      const typeLabel = selectedReport.ticket_type === 'fault' ? 'Fault / Avería'
+        : selectedReport.ticket_type === 'ticket' ? 'Ticket' : 'Rework'
+      const titleOrNr = selectedReport.ticket_type === 'ticket'
+        ? (selectedReport.ticket_number || '—')
+        : (selectedReport.title || '—')
+
+      pdf.setFontSize(7.5)
+      pdf.setFont(undefined, 'bold')
+      pdf.setTextColor(255, 220, 220)
+      pdf.text('TYPE', W - MR - 55, 10)
+      pdf.text('REF', W - MR - 25, 10)
+      pdf.text('DATE', W - MR, 10, { align: 'right' })
+      pdf.setFont(undefined, 'normal')
+      pdf.setTextColor(255, 255, 255)
+      pdf.text(typeLabel, W - MR - 55, 15)
+      pdf.text(titleOrNr, W - MR - 25, 15)
+      pdf.text(new Date(selectedReport.date).toLocaleDateString('es-ES'), W - MR, 15, { align: 'right' })
+      pdf.setFont(undefined, 'bold')
+      pdf.setTextColor(255, 220, 220)
+      pdf.text('TECHNICIAN', W - MR - 55, 21)
+      pdf.setFont(undefined, 'normal')
+      pdf.setTextColor(255, 255, 255)
+      pdf.text(selectedReport.technician_name || '—', W - MR - 55, 26)
+
+      // White sub-header band
+      pdf.setFillColor(250, 250, 250)
+      pdf.rect(0, 28, W, 12, 'F')
+      pdf.setFontSize(7.5)
+      pdf.setFont(undefined, 'bold')
+      pdf.setTextColor(150, 150, 150)
+      pdf.text('MOTION BUSINESS', ML, 35)
+      pdf.setFont(undefined, 'normal')
       pdf.setTextColor(50, 50, 50)
-      pdf.text('Field Service Report', 35, y)
+      pdf.text(selectedReport.motion_business || '—', ML + 35, 35)
 
-      pdf.setFontSize(9)
-      pdf.setTextColor(80, 80, 80)
-      pdf.text('Motion Business: ' + (selectedReport.motion_business || '—'), 140, y)
-      pdf.text('Ticket Nr: ' + (selectedReport.ticket_number || '—'), 140, y + 5)
-      pdf.text('Date: ' + new Date(selectedReport.date).toLocaleDateString(), 140, y + 10)
-      pdf.setTextColor(0, 0, 0)
+      y = 46
 
-      y += 18
-      drawLine()
-
+      // ════════════════════════════════════════════════════════════════════
       // AFFECTED PLANT
-      sectionTitle('AFFECTED PLANT')
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-      pdf.text('Customer:', 15, y)
-      pdf.text(selectedReport.customer || '—', 45, y)
-      pdf.text('Depot:', 110, y)
-      pdf.text(selectedReport.depot || '—', 130, y)
-      y += 6
-      pdf.text('Project:', 15, y)
-      pdf.text(selectedReport.project || '—', 45, y)
-      pdf.text('Vehicle #:', 110, y)
-      pdf.text(selectedReport.unit || '—', 130, y)
-      y += 8
-      drawLine()
+      // ════════════════════════════════════════════════════════════════════
+      section('AFFECTED PLANT')
+      fieldRow([['Customer', selectedReport.customer], ['Depot', selectedReport.depot]])
+      fieldRow([['Project', selectedReport.project], ['Vehicle #', selectedReport.unit]])
+      sep()
 
+      // ════════════════════════════════════════════════════════════════════
       // CONVERTER
-      sectionTitle('CONVERTER INFORMATION')
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-      pdf.text('Type:', 15, y)
-      const converterTypeLines = pdf.splitTextToSize(selectedReport.converter_type || '—', 150)
-      pdf.text(converterTypeLines, 45, y)
-      y += converterTypeLines.length * 5 + 2
-      pdf.text('SN:', 15, y)
-      pdf.text(selectedReport.converter_sn || '—', 45, y)
-      y += 8
-      drawLine()
+      // ════════════════════════════════════════════════════════════════════
+      section('CONVERTER INFORMATION')
+      fieldRow([['Converter Type', selectedReport.converter_type], ['Serial Number', selectedReport.converter_sn]])
+      sep()
 
+      // ════════════════════════════════════════════════════════════════════
       // FAILURE DESCRIPTION
-      sectionTitle('FAILURE DESCRIPTION')
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-
+      // ════════════════════════════════════════════════════════════════════
+      section('FAILURE DESCRIPTION')
       if (selectedReport.first_message_date) {
-        pdf.text('First Message Date:', 15, y)
-        pdf.text(new Date(selectedReport.first_message_date).toLocaleString(), 60, y)
-        y += 6
+        fieldRow([['First Message Date', new Date(selectedReport.first_message_date).toLocaleString('es-ES')], ['Failure Classification', selectedReport.failure_classification]])
+      } else if (selectedReport.failure_classification) {
+        fieldRow([['Failure Classification', selectedReport.failure_classification]])
       }
-
+      checkY(20)
+      pdf.setFontSize(7.5)
       pdf.setFont(undefined, 'bold')
-      pdf.text('Detected Defect / Error Caused by:', 15, y)
-      y += 5
+      pdf.setTextColor(120, 120, 120)
+      pdf.text('DETECTED DEFECT / ERROR CAUSED BY', ML, y)
+      y += 4
       pdf.setFont(undefined, 'normal')
-      const defectLines = pdf.splitTextToSize(selectedReport.detected_defect || '—', 170)
-      pdf.text(defectLines, 15, y)
+      pdf.setTextColor(30, 30, 30)
+      const defectLines = pdf.splitTextToSize(selectedReport.detected_defect || '—', CONTENT_W)
+      checkY(defectLines.length * 4.5 + 4)
+      pdf.text(defectLines, ML, y)
       y += defectLines.length * 4.5 + 4
+      sep()
 
-      if (selectedReport.failure_classification) {
-        pdf.setFont(undefined, 'bold')
-        pdf.text('Failure Classification:', 15, y)
-        y += 5
-        pdf.setFont(undefined, 'normal')
-        pdf.text(selectedReport.failure_classification, 15, y)
-        y += 6
+      // ════════════════════════════════════════════════════════════════════
+      // SERVICE TIMES
+      // ════════════════════════════════════════════════════════════════════
+      const serviceDays = selectedReport.service_days || []
+      if (serviceDays.length > 0) {
+        section('SERVICE TIMES')
+        serviceDays.forEach((day, i) => {
+          checkY(8)
+          pdf.setFontSize(8)
+          pdf.setFont(undefined, 'bold')
+          pdf.setTextColor(180, 0, 0)
+          pdf.text('Day ' + (i + 1), ML, y)
+          pdf.setFont(undefined, 'normal')
+          pdf.setTextColor(30, 30, 30)
+          const dateStr = day.date ? day.date.split('-').reverse().join('/') : '—'
+          pdf.text(dateStr + '   ' + (day.start_time || '—') + ' → ' + (day.end_time || '—'), ML + 15, y)
+          y += 6
+        })
+        sep()
       }
-      drawLine()
 
+      // ════════════════════════════════════════════════════════════════════
       // EXECUTED WORK
-      sectionTitle('EXECUTED WORK')
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-
-      if (selectedReport.start_time || selectedReport.end_time) {
-        pdf.text('Service Times:', 15, y)
-        pdf.text((selectedReport.start_time || '—') + '  →  ' + (selectedReport.end_time || '—'), 50, y)
-        y += 6
-      }
-
-      const workLines = pdf.splitTextToSize(selectedReport.rework_points || '—', 170)
-      pdf.text(workLines, 15, y)
-      y += workLines.length * 4.5 + 4
-
+      // ════════════════════════════════════════════════════════════════════
+      section('EXECUTED WORK')
+      checkY(20)
+      pdf.setFontSize(7.5)
       pdf.setFont(undefined, 'bold')
-      pdf.text('Fault Corrected: ', 15, y)
+      pdf.setTextColor(120, 120, 120)
+      pdf.text('WORK PERFORMED', ML, y)
+      y += 4
       pdf.setFont(undefined, 'normal')
-      pdf.text((selectedReport.fault_corrected || 'yes').toUpperCase(), 55, y)
-      y += 8
-      drawLine()
+      pdf.setTextColor(30, 30, 30)
+      const workLines = pdf.splitTextToSize(selectedReport.rework_points || '—', CONTENT_W)
+      checkY(workLines.length * 4.5 + 4)
+      pdf.text(workLines, ML, y)
+      y += workLines.length * 4.5 + 5
 
-      // REPLACED MATERIAL
+      // Work permit + fault corrected pills
+      const fcColors = { yes: [46,125,50], no: [198,40,40], pending: [230,119,0] }
+      const fcLabels = { yes: 'YES', no: 'NO', pending: 'PENDING' }
+      const fc = selectedReport.fault_corrected || 'yes'
+      const wp = selectedReport.work_permit || 'yes'
+
+      checkY(14)
+      pdf.setFillColor(245, 245, 245)
+      pdf.roundedRect(ML, y, CONTENT_W, 10, 2, 2, 'F')
+      pdf.setFontSize(7)
+      pdf.setFont(undefined, 'bold')
+      pdf.setTextColor(120, 120, 120)
+      pdf.text('WORK PERMIT', ML + 3, y + 4)
+      pdf.text('FAULT CORRECTED', ML + 55, y + 4)
+      pdf.setTextColor(...(fcColors[wp] || fcColors.yes))
+      pdf.text(fcLabels[wp] || 'YES', ML + 3, y + 8.5)
+      pdf.setTextColor(...(fcColors[fc] || fcColors.yes))
+      pdf.text(fcLabels[fc] || 'YES', ML + 55, y + 8.5)
+      pdf.setTextColor(0, 0, 0)
+      y += 14
+
+      if (selectedReport.work_permit === 'no' && selectedReport.permit_not_completed_reason) {
+        checkY(10)
+        pdf.setFontSize(7.5)
+        pdf.setFont(undefined, 'bold')
+        pdf.setTextColor(120, 120, 120)
+        pdf.text('REASON PERMIT NOT COMPLETED', ML, y)
+        y += 4
+        pdf.setFont(undefined, 'normal')
+        pdf.setTextColor(30, 30, 30)
+        const reasonLines = pdf.splitTextToSize(selectedReport.permit_not_completed_reason, CONTENT_W)
+        pdf.text(reasonLines, ML, y)
+        y += reasonLines.length * 4.2 + 4
+      }
+      sep()
+
+      // ════════════════════════════════════════════════════════════════════
+      // REPLACED MATERIALS
+      // ════════════════════════════════════════════════════════════════════
       const materials = selectedReport.replaced_materials || []
       if (materials.length > 0) {
-        sectionTitle('REPLACED MATERIAL')
+        section('REPLACED MATERIALS')
         materials.forEach((mat, idx) => {
-          addPageIfNeeded(30)
-          pdf.setFontSize(9)
+          checkY(20)
+          // Card background
+          pdf.setFillColor(248, 248, 252)
+          pdf.roundedRect(ML, y, CONTENT_W, 16, 2, 2, 'F')
+          pdf.setDrawColor(103, 100, 246)
+          pdf.setLineWidth(0.6)
+          pdf.line(ML, y, ML, y + 16)
+          pdf.setLineWidth(0.3)
+          pdf.setDrawColor(220, 220, 220)
+
+          pdf.setFontSize(7.5)
           pdf.setFont(undefined, 'bold')
-          pdf.text('Material ' + (idx + 1), 15, y)
-          y += 5
+          pdf.setTextColor(103, 100, 246)
+          pdf.text('MATERIAL ' + (idx + 1), ML + 3, y + 5)
+
+          const halfW = (CONTENT_W - 4) / 2
+          pdf.setFont(undefined, 'bold')
+          pdf.setTextColor(120, 120, 120)
+          pdf.text('OLD', ML + 3, y + 10)
+          pdf.text('NEW', ML + 3 + halfW, y + 10)
           pdf.setFont(undefined, 'normal')
-          pdf.text('Old — Nr: ' + (mat.material_number_old || '—') + '  |  SN: ' + (mat.serial_number_old || '—'), 15, y)
-          y += 5
-          pdf.text('New — Nr: ' + (mat.material_number_new || '—') + '  |  SN: ' + (mat.serial_number_new || '—'), 15, y)
-          y += 8
+          pdf.setTextColor(30, 30, 30)
+          pdf.text('Nr: ' + (mat.material_number_old || '—') + '   SN: ' + (mat.serial_number_old || '—'), ML + 10, y + 10)
+          pdf.text('Nr: ' + (mat.material_number_new || '—') + '   SN: ' + (mat.serial_number_new || '—'), ML + 10 + halfW, y + 10)
+
+          y += 20
         })
-        drawLine()
+        sep()
       }
 
+      // ════════════════════════════════════════════════════════════════════
       // SERVICE CONFIRMATION
-      sectionTitle('SERVICE CONFIRMATION')
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-      pdf.text('Repair Date:', 15, y)
-      pdf.text(new Date(selectedReport.date).toLocaleDateString(), 50, y)
-      pdf.text('Repair Location:', 100, y)
-      pdf.text(selectedReport.repair_location || '—', 135, y)
-      y += 8
-
+      // ════════════════════════════════════════════════════════════════════
+      section('SERVICE CONFIRMATION')
+      fieldRow([
+        ['Repair Date', new Date(selectedReport.date).toLocaleDateString('es-ES')],
+        ['Repair Location', selectedReport.repair_location]
+      ])
       if (selectedReport.conclusion) {
+        checkY(14)
+        pdf.setFontSize(7.5)
         pdf.setFont(undefined, 'bold')
-        pdf.text('Conclusion:', 15, y)
-        y += 5
+        pdf.setTextColor(120, 120, 120)
+        pdf.text('CONCLUSION', ML, y)
+        y += 4
         pdf.setFont(undefined, 'normal')
-        const conclusionLines = pdf.splitTextToSize(selectedReport.conclusion, 170)
-        pdf.text(conclusionLines, 15, y)
-        y += conclusionLines.length * 4.5 + 5
+        pdf.setTextColor(30, 30, 30)
+        const conclusionLines = pdf.splitTextToSize(selectedReport.conclusion, CONTENT_W)
+        checkY(conclusionLines.length * 4.5)
+        pdf.text(conclusionLines, ML, y)
+        y += conclusionLines.length * 4.5 + 4
       }
-      drawLine()
+      sep()
 
-      // PICTURES — now loaded correctly before pdf.save()
+      // ════════════════════════════════════════════════════════════════════
+      // PICTURES
+      // ════════════════════════════════════════════════════════════════════
       if (photoBase64Array.length > 0) {
-        sectionTitle('PICTURES')
-        for (const base64 of photoBase64Array) {
+        section('PICTURES')
+        let imgX = ML
+        let rowH = 0
+        for (let i = 0; i < photoBase64Array.length; i++) {
+          const base64 = photoBase64Array[i]
           if (!base64) continue
-          addPageIfNeeded(70)
+          const imgW = (CONTENT_W - 4) / 2
+          const imgH = imgW * 0.75
+          if (i % 2 === 0) {
+            checkY(imgH + 4)
+            imgX = ML
+            rowH = imgH
+          } else {
+            imgX = ML + imgW + 4
+          }
           try {
-            pdf.addImage(base64, 'JPEG', 15, y, 85, 65)
-            y += 70
-          } catch (err) {
-            console.log('Could not embed photo:', err)
+            pdf.addImage(base64, 'JPEG', imgX, y, imgW, imgH)
+          } catch (e) { console.log('photo err', e) }
+          if (i % 2 === 1 || i === photoBase64Array.length - 1) {
+            y += rowH + 4
           }
         }
-        drawLine()
+        sep()
       }
 
-      // SIGNATURE — now loaded correctly before pdf.save()
-      addPageIfNeeded(50)
-      pdf.setFontSize(10)
-      pdf.setFont(undefined, 'bold')
-      pdf.setTextColor(204, 0, 0)
-      pdf.text('SIGNATURE OF SERVICE ENGINEER', 15, y)
-      pdf.setTextColor(0, 0, 0)
-      y += 8
-
-      pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
-      pdf.text('Service Engineer:', 15, y)
-      pdf.text(selectedReport.technician_name || '—', 55, y)
-      pdf.text('Date:', 120, y)
-      pdf.text(new Date(selectedReport.date).toLocaleDateString(), 133, y)
-      y += 10
+      // ════════════════════════════════════════════════════════════════════
+      // SIGNATURE
+      // ════════════════════════════════════════════════════════════════════
+      checkY(45)
+      section('SIGNATURE OF SERVICE ENGINEER')
+      fieldRow([['Service Engineer', selectedReport.technician_name], ['Date', new Date(selectedReport.date).toLocaleDateString('es-ES')]])
 
       if (signatureBase64) {
+        checkY(32)
+        pdf.setDrawColor(220, 220, 220)
+        pdf.setLineWidth(0.3)
+        pdf.roundedRect(ML, y, 70, 28, 2, 2, 'S')
         try {
-          pdf.addImage(signatureBase64, 'PNG', 15, y, 65, 28)
-          y += 32
-        } catch (err) {
-          console.log('Could not embed signature:', err)
-        }
+          pdf.addImage(signatureBase64, 'PNG', ML + 2, y + 2, 66, 24)
+        } catch (e) { console.log('sig err', e) }
+        y += 32
       }
 
-      // SAVE — called only after all images are embedded
-      const fileName = 'Report_' + (selectedReport.ticket_number || 'FSR') + '_' + Date.now() + '.pdf'
+      // ── Page numbers footer ───────────────────────────────────────────
+      const totalPages = pdf.internal.getNumberOfPages()
+      for (let p = 1; p <= totalPages; p++) {
+        pdf.setPage(p)
+        pdf.setFontSize(7)
+        pdf.setFont(undefined, 'normal')
+        pdf.setTextColor(180, 180, 180)
+        pdf.text('ABB Field Service Report  |  Page ' + p + ' of ' + totalPages, W / 2, H - 6, { align: 'center' })
+        pdf.setDrawColor(204, 0, 0)
+        pdf.setLineWidth(0.5)
+        pdf.line(ML, H - 10, W - MR, H - 10)
+      }
+
+      const ref = selectedReport.ticket_type === 'ticket'
+        ? (selectedReport.ticket_number || 'FSR')
+        : (selectedReport.title || 'FSR')
+      const fileName = 'ABB_FSR_' + ref.replace(/\s+/g, '_') + '_' + new Date(selectedReport.date).toLocaleDateString('es-ES').replace(/\//g, '-') + '.pdf'
       pdf.save(fileName)
+
     } catch (error) {
       console.error('PDF Error:', error)
-      alert('Error al generar el PDF: ' + error.message)
+      alert('Error generating PDF: ' + error.message)
     } finally {
       setExporting(false)
     }

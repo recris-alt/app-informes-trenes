@@ -2,50 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../services/supabaseClient'
 import '../styles/CreateReport.css'
 
-// Helper: YYYY-MM-DD → {day, month, year}
-const parseDate = (iso) => {
-  if (!iso) return { day: '', month: '', year: '' }
-  const [y, m, d] = iso.split('-')
-  return { day: d || '', month: m || '', year: y || '' }
-}
-// Helper: {day, month, year} → YYYY-MM-DD
-const buildDate = (day, month, year) => {
-  if (!day || !month || !year) return ''
-  return `${year.padStart(4,'0')}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`
-}
-
-const DAYS   = Array.from({length:31}, (_,i) => String(i+1).padStart(2,'0'))
-const MONTHS = ['01','02','03','04','05','06','07','08','09','10','11','12']
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const YEARS  = Array.from({length:10}, (_,i) => String(new Date().getFullYear() - 2 + i))
-
-function DateSelect({ value, onChange, style }) {
-  const { day, month, year } = parseDate(value)
-  const set = (field, val) => {
-    const next = { day, month, year, [field]: val }
-    onChange(buildDate(next.day, next.month, next.year))
-  }
-  const s = { ...style, padding: '9px 6px', flex: 1, minWidth: 0 }
-  return (
-    <div style={{display:'flex', gap:'4px'}}>
-      <select style={s} value={day} onChange={e => set('day', e.target.value)}>
-        <option value="">DD</option>
-        {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-      </select>
-      <select style={s} value={month} onChange={e => set('month', e.target.value)}>
-        <option value="">MM</option>
-        {MONTHS.map((m,i) => <option key={m} value={m}>{MONTH_NAMES[i]}</option>)}
-      </select>
-      <select style={{...s, minWidth:'68px'}} value={year} onChange={e => set('year', e.target.value)}>
-        <option value="">YYYY</option>
-        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-      </select>
-    </div>
-  )
-}
-
-
-
 const EMPTY_FORM = {
   technician_name: '',
   date: new Date().toISOString().split('T')[0],
@@ -391,7 +347,7 @@ export default function CreateReport() {
             </div>
             <div className="form-group">
               <label>Date *</label>
-              <DateSelect value={formData.date} onChange={val => setFormData(prev => ({...prev, date: val}))} style={INPUT_STYLE} />
+              <input style={INPUT_STYLE} type="date" name="date" value={formData.date} onChange={handleInputChange} required />
             </div>
           </div>
         </div>
@@ -466,7 +422,7 @@ export default function CreateReport() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Date</label>
-                    <DateSelect value={day.date} onChange={val => handleServiceDayChange(index, 'date', val)} style={INPUT_STYLE} />
+                    <input style={INPUT_STYLE} type="date" value={day.date} onChange={e => handleServiceDayChange(index, 'date', e.target.value)} />
                   </div>
                   <div className="form-group">
                     <label>Start Time</label>

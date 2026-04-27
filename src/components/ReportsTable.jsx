@@ -51,9 +51,16 @@ export default function ReportsTable({ onSelectReport }) {
         (r.depot || '').toLowerCase().includes(q) ||
         (r.technician_name || '').toLowerCase().includes(q) ||
         (r.converter_type || '').toLowerCase().includes(q) ||
+        (r.converter_sn || '').toLowerCase().includes(q) ||
         (r.fault_corrected || '').toLowerCase().includes(q) ||
+        (r.repair_location || '').toLowerCase().includes(q) ||
         (r.project || '').toLowerCase().includes(q) ||
         (r.ticket_type || '').toLowerCase().includes(q) ||
+        (r.motion_business || '').toLowerCase().includes(q) ||
+        (r.detected_defect || '').toLowerCase().includes(q) ||
+        (r.rework_points || '').toLowerCase().includes(q) ||
+        (r.conclusion || '').toLowerCase().includes(q) ||
+        ((r.service_days || []).some(d => (d.date || '').includes(q))) ||
         new Date(r.date).toLocaleDateString().includes(q)
       )
     })
@@ -166,14 +173,17 @@ export default function ReportsTable({ onSelectReport }) {
                 <th onClick={() => handleSort('converter_type')}>
                   Tipo Convertidor <SortIcon field="converter_type" />
                 </th>
-                <th onClick={() => handleSort('start_time')}>
-                  Hora Inicio <SortIcon field="start_time" />
+                <th onClick={() => handleSort('converter_sn')}>
+                  Converter SN <SortIcon field="converter_sn" />
                 </th>
-                <th onClick={() => handleSort('end_time')}>
-                  Hora Fin <SortIcon field="end_time" />
+                <th>
+                  Service Days
                 </th>
                 <th onClick={() => handleSort('fault_corrected')}>
-                  Fallo Corregido <SortIcon field="fault_corrected" />
+                  Fault Corrected <SortIcon field="fault_corrected" />
+                </th>
+                <th onClick={() => handleSort('repair_location')}>
+                  Repair Location <SortIcon field="repair_location" />
                 </th>
               </tr>
             </thead>
@@ -199,13 +209,27 @@ export default function ReportsTable({ onSelectReport }) {
                   <td>{report.project || '—'}</td>
                   <td>{new Date(report.date).toLocaleDateString()}</td>
                   <td className="cell-converter">{report.converter_type || '—'}</td>
-                  <td>{report.start_time || '—'}</td>
-                  <td>{report.end_time || '—'}</td>
-                  <td>
-                    <span className={`badge ${report.fault_corrected === 'yes' ? 'badge-yes' : 'badge-no'}`}>
-                      {report.fault_corrected === 'yes' ? '✓ Yes' : '✗ No'}
-                    </span>
+                  <td className="cell-sn">{report.converter_sn || '—'}</td>
+                  <td className="cell-days">
+                    {report.service_days && report.service_days.length > 0
+                      ? report.service_days.map((d, i) => (
+                          <span key={i} className="day-tag">{d.date}</span>
+                        ))
+                      : '—'}
                   </td>
+                  <td>
+                    {(() => {
+                      const fc = report.fault_corrected || 'yes'
+                      const cfg = {
+                        yes:     { cls: 'badge-yes', label: '✓ Yes' },
+                        no:      { cls: 'badge-no',  label: '✗ No' },
+                        pending: { cls: 'badge-pending', label: '⏳ Pending' },
+                      }
+                      const { cls, label } = cfg[fc] || cfg.yes
+                      return <span className={`badge ${cls}`}>{label}</span>
+                    })()}
+                  </td>
+                  <td className="cell-location">{report.repair_location || '—'}</td>
                 </tr>
               ))}
             </tbody>

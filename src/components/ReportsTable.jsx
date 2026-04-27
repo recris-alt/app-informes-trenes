@@ -61,7 +61,7 @@ export default function ReportsTable({ onSelectReport }) {
         (r.rework_points || '').toLowerCase().includes(q) ||
         (r.conclusion || '').toLowerCase().includes(q) ||
         ((r.service_days || []).some(d => (d.date || '').includes(q))) ||
-        new Date(r.date).toLocaleDateString().includes(q)
+        new Date(r.date).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'}).includes(q)
       )
     })
   }, [reports, search, typeFilter])
@@ -213,7 +213,7 @@ export default function ReportsTable({ onSelectReport }) {
                   <td className="cell-days">
                     {report.service_days && report.service_days.length > 0
                       ? report.service_days.map((d, i) => (
-                          <span key={i} className="day-tag">{d.date}</span>
+                          <span key={i} className="day-tag">{d.date ? d.date.split('-').reverse().join('/') : '—'}</span>
                         ))
                       : '—'}
                   </td>

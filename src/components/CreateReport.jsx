@@ -394,7 +394,7 @@ export default function CreateReport() {
           <h3>Failure Description</h3>
           <div className="form-row">
             <div className="form-group">
-              <label>First Message Date</label>
+              <label>First Message Date &amp; Time</label>
               <input style={INPUT_STYLE} type="datetime-local" name="first_message_date" value={formData.first_message_date} onChange={handleInputChange} />
             </div>
             <div className="form-group">
